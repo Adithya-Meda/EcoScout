@@ -145,8 +145,6 @@ Resources:
             RestApiId: !Ref EcoScoutApi
             Path: /analyze
             Method: POST
-            Auth:
-              ApiKeyRequired: true
       Policies:
         - Statement:
             - Sid: TempUploadObjects
