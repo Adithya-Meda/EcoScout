@@ -189,10 +189,6 @@ Outputs:
     Description: REST API id
     Value: !Ref EcoScoutApi
 
-  ApiKeyId:
-    Description: API key id (retrieve the secret value with get-api-key --include-value)
-    Value: !Ref EcoScoutApiApiKey
-
   UploadBucketName:
     Description: Temporary encrypted upload bucket
     Value: !Ref UploadBucket
