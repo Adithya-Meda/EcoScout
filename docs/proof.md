@@ -1,6 +1,6 @@
 # EcoScout — hackathon proof pack
 
-Category: **Social Good / Climate Resilience**  
+Category: **Social Good / Climate Resilience**
 App: photo in → item identity + local recycling advice + eco-points.
 
 Use this file as the judging narrative. Replace bracketed items with screenshots and stack outputs after you deploy.
