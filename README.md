@@ -1,116 +1,93 @@
-# EcoScout
+# 🌿 EcoScout — Scan Trash. Recycle Right.
 
-Production-ready photo-to-recycling advisor for the AWS Zero to Shipped hackathon (Social Good / Climate Resilience). Users photograph a waste item; Amazon Rekognition identifies it; Amazon Bedrock (Claude 3 Haiku) writes hyper-local recycling advice; the UI awards eco-points.
+> **AWS Builder Center — Zero to Shipped Hackathon Project (Climate Resilience & Social Good)**
 
-## Architecture
+EcoScout removes the guesswork from recycling by combining computer vision AI with generative AI to deliver hyper-local, municipal-specific waste sorting guidance based on your city and PIN/ZIP code.
+
+---
+
+## 🛠️ AWS Services Utilized
+
+EcoScout is built using a serverless architecture powered by 5 core AWS services:
+
+1. **Amazon S3 (`Amazon Simple Storage Service`)**: Staging ground for uploaded photos with server-side encryption (SSE-S3), strict bucket policies, and ephemeral 1-day lifecycle expiration.
+2. **AWS Rekognition**: Computer vision service used for automated object detection, multi-label extraction, and confidence scoring.
+3. **Amazon Bedrock**: Generative AI service (powered by Anthropic Claude 3 Haiku / AWS Nova models) used for contextual reasoning against local municipal solid waste rules.
+4. **AWS Lambda**: Serverless Node.js 20 execution environment running payload validation, vision AI integration, and prompt orchestration.
+5. **Amazon API Gateway**: Secure REST API Gateway enforcing TLS 1.3 encryption, CORS origins, rate limiting/throttling, usage plans, API keys, and OWASP security headers.
+
+---
+
+## 🏗️ Architecture Diagram
 
 ```
-Browser (Amplify)
-  -> Amazon API Gateway REST (API key + usage plan, CORS locked to one origin)
-    -> AWS Lambda (Node.js 20)
-      -> Amazon S3 (SSE-S3, private, versioned, 1-day expiry)
-      -> Amazon Rekognition DetectLabels
-      -> Amazon Bedrock Converse (Claude 3 Haiku)
-      -> S3 DeleteObject
+User Browser (AWS Amplify Hosting)
+  │
+  ▼
+Amazon API Gateway (REST API / CORS Locked / API Key Throttled)
+  │
+  ▼
+AWS Lambda (Node.js 20 Serverless Handler)
+  ├── 1. Upload Staging ────────► Amazon S3 (Private, Encrypted, Auto-Expire)
+  ├── 2. Vision Labeling ───────► AWS Rekognition (DetectLabels API)
+  └── 3. Rule Reasoning ────────► Amazon Bedrock (Claude 3 / Nova Models)
 ```
 
-No AWS credentials sit in the frontend. The browser only calls API Gateway with an API key (a usage-plan identifier, visible in DevTools by design). IAM credentials stay on Lambda.
+---
 
-## Repository layout
+## ✨ Features
+
+- 👁️ **Multi-Modal AI Vision**: Identifies items instantly using computer vision label detection.
+- 🧠 **Hyper-Local Rule Reasoning**: Amazon Bedrock matches municipal solid waste rules (e.g. Indian Solid Waste Management Rules 2016 BBMP/BMC/MCD bin colors vs. US curbside single-stream).
+- 📍 **PIN / ZIP Code Location Lookup**: Accepts 6-digit Indian PIN codes (e.g. `560001`, `110001`, `400018`) and 5-digit US ZIP codes (e.g. `78701`, `94103`) without requiring device GPS access.
+- ⚡ **Out-Of-The-Box Visual UX**: 3D flip myth cards, typewriter AI text streaming, floating particle canvas background, cursor spotlight glow, HUD target overlays, and 1-click quick demo chips.
+- 🔒 **Zero-Knowledge Privacy**: Ephemeral S3 storage, no user accounts, no database, and no stored PII.
+
+---
+
+## 📁 Repository Structure
 
 ```
-frontend/          Amplify static site
-backend/src/      Lambda handlers and AWS SDK v3 clients
-backend/template.yaml
-docs/proof.md
-amplify.yml
+├── frontend/               # Glassmorphic Static Frontend Web Application
+│   ├── index.html          # Main Web Application & UI Structure
+│   ├── style.css           # Custom Design Tokens, Glassmorphism & Animations
+│   ├── app.js              # Application Logic & API Gateway Integration
+│   └── config.example.js   # Configuration Template for API Gateway Endpoints
+├── backend/                # AWS Serverless SAM Backend
+│   ├── src/                # Lambda Handlers, Validation, & SDK v3 Clients
+│   └── template.yaml       # AWS SAM Infrastructure-as-Code Specification
+├── SECURITY.md             # Security Policy & Vulnerability Disclosure
+├── PRIVACY.md              # Privacy & Ephemeral Data Processing Policy
+├── LICENSE                 # MIT Open Source License
+└── CODE_OF_CONDUCT.md      # Contributor Covenant Code of Conduct
 ```
 
-## Prerequisites
+---
 
-- AWS account with CLI credentials
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-- Node.js 20+ (for local `npm install` if you inspect `backend/src`)
-- Bedrock model access enabled in the **same Region** you deploy to: Amazon Bedrock console → Model access → Anthropic Claude 3 Haiku (`anthropic.claude-3-haiku-20240307-v1:0`)
-- Rekognition and S3 available in that Region (image Region must match Rekognition)
+## 🚀 Deployment Guide
 
-Suggested Region: `us-east-1`.
+### Prerequisites
+- [AWS CLI](https://aws.amazon.com/cli/) configured with deployment credentials.
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html).
+- Amazon Bedrock model access enabled in your AWS Region (e.g., `us-east-1` or `us-west-2`) for Anthropic Claude 3 Haiku (`anthropic.claude-3-haiku-20240307-v1:0`).
 
-## Deploy the backend
-
+### 1. Backend Deployment (AWS SAM)
 ```bash
 cd backend
 sam build
 sam deploy --guided
 ```
 
-When prompted:
-
-| Parameter | What to enter |
-| --- | --- |
-| Stack name | `ecoscout` |
-| AWS Region | `us-east-1` (or your Bedrock Region) |
-| AllowedOrigin | `http://localhost:5500` first, then your Amplify origin (`https://main.dxxxxx.amplifyapp.com`) with **no trailing slash** |
-| BedrockModelId | `anthropic.claude-3-haiku-20240307-v1:0` |
-| BedrockInferenceProfileArn | leave empty unless your account requires an inference profile |
-
-After deploy, copy outputs:
-
-```bash
-aws cloudformation describe-stacks --stack-name ecoscout --query "Stacks[0].Outputs"
-aws apigateway get-api-key --api-key <ApiKeyId> --include-value --query "value" --output text
+### 2. Frontend Configuration
+Copy `frontend/config.example.js` to `frontend/config.js` and paste your deployed `ApiUrl` and `ApiKey`:
+```javascript
+window.ECOScoutConfig = {
+  apiUrl: "https://<your-api-id>.execute-api.us-east-1.amazonaws.com/Prod/analyze",
+  apiKey: "YOUR_API_KEY_HERE"
+};
 ```
 
-Create `frontend/config.js` from the example:
+---
 
-```bash
-cp frontend/config.example.js frontend/config.js
-```
-
-Set `apiUrl` to the `ApiUrl` output and `apiKey` to the retrieved key value.
-
-Redeploy the SAM stack when the Amplify URL is known so CORS matches that origin exactly (`AllowedOrigin` is not `*`).
-
-## Host the frontend
-
-1. Push this repo (keep `frontend/config.js` out of git; add it in the Amplify console as a build step or commit it only in a private fork).
-2. AWS Amplify Hosting → connect the repo → app root can stay the repository root; [`amplify.yml`](amplify.yml) publishes `frontend/**`.
-3. Ensure `frontend/config.js` exists in the artifact (copy it in `amplify.yml` `preBuild` if you inject secrets from Amplify environment variables).
-
-Example `amplify.yml` snippet if you store values as Amplify env vars:
-
-```bash
-printf 'window.ECOScoutConfig = { apiUrl: "%s", apiKey: "%s" };\n' "$API_URL" "$API_KEY" > frontend/config.js
-```
-
-## Local preview
-
-From `frontend/` (with `config.js` filled in):
-
-```bash
-npx --yes serve -l 5500
-```
-
-Open `http://localhost:5500`. AllowedOrigin must include that origin.
-
-## Security controls
-
-- REST API requires `x-api-key`
-- Usage plan: **100 requests / day** and 10 req/s (burst 20) **per API key**, not per IP. API Gateway usage plans cannot quota by client IP. True per-IP daily caps need WAF (5-minute windows) or an application counter.
-- Lambda IAM: S3 only on `uploads/*`; Bedrock only on the Haiku foundation-model ARN (plus optional inference profile); Rekognition `DetectLabels` and X-Ray require `Resource: "*"` because those APIs do not support resource-level IAM
-- S3: block public access, versioning, SSE-S3, TLS-only bucket policy, lifecycle expire 1 day
-- Images deleted after analysis
-- Input validation: JPEG/PNG magic bytes, 5 MB max, city and US ZIP
-- CORS and CSP on API responses; CSP + frame deny on Amplify responses
-
-## Limits
-
-- Rekognition image APIs accept JPEG and PNG only (no WebP)
-- API Gateway payload cap is 10 MB; EcoScout rejects decoded images over 5 MB
-- Drop-off locations are **mock data** keyed by ZIP prefix
-- Community stats are **mock counters**
-- Eco-points persist in `localStorage` on the device
-
-## Demo script
-
-See [docs/proof.md](docs/proof.md).
+## ⚖️ License
+This project is open-source under the [MIT License](LICENSE).

@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+  window.scrollTo(0, 0);
+
   var MAX_BYTES = 5242880;
 
   var form = document.getElementById("scan-form");
