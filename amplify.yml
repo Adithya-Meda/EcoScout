@@ -4,9 +4,9 @@ frontend:
     preBuild:
       commands:
         - |
-          if [ -n "${API_URL}" ] && [ -n "${API_KEY}" ]; then
-            printf 'window.ECOScoutConfig = { apiUrl: "%s", apiKey: "%s" };\n' "${API_URL}" "${API_KEY}" > frontend/config.js
-          elif [ ! -f frontend/config.js ]; then
+          if [ -n "${API_URL}" ]; then
+            printf 'window.ECOScoutConfig = { apiUrl: "%s", apiKey: "" };\n' "${API_URL}" > frontend/config.js
+          else
             cp frontend/config.example.js frontend/config.js
           fi
     build:
