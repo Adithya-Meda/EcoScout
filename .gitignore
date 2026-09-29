@@ -1,0 +1,6 @@
+.aws-sam/
+node_modules/
+frontend/config.js
+*.log
+.DS_Store
+samconfig.toml

@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: EcoScout backend — API Gateway REST, Lambda, S3, Rekognition, Bedrock
+
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: http://localhost:5500
+    Description: Exact browser origin allowed by CORS (Amplify URL after deploy). Do not use *.
+    AllowedPattern: ^https?://[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+$
+    ConstraintDescription: Must be a full http(s) origin with no wildcard.
+
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-haiku-20240307-v1:0
+    Description: Bedrock model ID for Converse (Claude 3 Haiku).
+
+  BedrockInferenceProfileArn:
+    Type: String
+    Default: ""
+    Description: Optional on-demand inference profile ARN if your account requires one.
+
+Conditions:
+  HasInferenceProfile: !Not [!Equals [!Ref BedrockInferenceProfileArn, ""]]
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 29
+    MemorySize: 512
+    Tracing: Active
+    Architectures:
+      - x86_64
+
+Resources:
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireTempUploads
+            Status: Enabled
+            Prefix: uploads/
+            ExpirationInDays: 1
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      Tags:
+        - Key: Application
+          Value: EcoScout
+        - Key: DataClass
+          Value: TemporaryUploads
+
+  UploadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt UploadBucket.Arn
+              - !Sub ${UploadBucket.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  EcoScoutApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ecoscout-api
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingRateLimit: 10
+          ThrottlingBurstLimit: 20
+          MetricsEnabled: true
+      Cors:
+        AllowMethods: "'OPTIONS,POST'"
+        AllowHeaders: "'Content-Type,X-Api-Key'"
+        AllowOrigin: !Sub "'${AllowedOrigin}'"
+        MaxAge: "'600'"
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: EcoScout 100 requests per day per API key
+          Quota:
+            Limit: 100
+            Period: DAY
+          Throttle:
+            BurstLimit: 20
+            RateLimit: 10
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key'"
+              Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              Content-Security-Policy: "'default-src ''none''; frame-ancestors ''none'''"
+              X-Content-Type-Options: "'nosniff'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key'"
+              Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              Content-Security-Policy: "'default-src ''none''; frame-ancestors ''none'''"
+              X-Content-Type-Options: "'nosniff'"
+
+  AnalyzeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ecoscout-analyze
+      CodeUri: src/
+      Handler: handler.handler
+      Description: Validate upload, Rekognition labels, Bedrock recycling advice
+      Environment:
+        Variables:
+          UPLOAD_BUCKET: !Ref UploadBucket
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Events:
+        Analyze:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EcoScoutApi
+            Path: /analyze
+            Method: POST
+            Auth:
+              ApiKeyRequired: true
+      Policies:
+        - Statement:
+            - Sid: TempUploadObjects
+              Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub ${UploadBucket.Arn}/uploads/*
+            - Sid: DetectLabels
+              Effect: Allow
+              Action:
+                - rekognition:DetectLabels
+              Resource: "*"
+            - Sid: InvokeHaikuFoundationModel
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource:
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}
+            - Sid: InvokeHaikuInferenceProfile
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: !If
+                - HasInferenceProfile
+                - !Ref BedrockInferenceProfileArn
+                - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/anthropic.claude-3-haiku-20240307-v1:0
+            - Sid: FunctionLogs
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ecoscout-analyze:*
+            - Sid: XRay
+              Effect: Allow
+              Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+              Resource: "*"
+
+Outputs:
+  ApiUrl:
+    Description: Analyze endpoint
+    Value: !Sub https://${EcoScoutApi}.execute-api.${AWS::Region}.amazonaws.com/prod/analyze
+
+  ApiId:
+    Description: REST API id
+    Value: !Ref EcoScoutApi
+
+  ApiKeyId:
+    Description: API key id (retrieve the secret value with get-api-key --include-value)
+    Value: !Ref EcoScoutApiApiKey
+
+  UploadBucketName:
+    Description: Temporary encrypted upload bucket
+    Value: !Ref UploadBucket

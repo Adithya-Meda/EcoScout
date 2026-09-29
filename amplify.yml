@@ -1,0 +1,35 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - |
+          if [ -n "${API_URL}" ] && [ -n "${API_KEY}" ]; then
+            printf 'window.ECOScoutConfig = { apiUrl: "%s", apiKey: "%s" };\n' "${API_URL}" "${API_KEY}" > frontend/config.js
+          elif [ ! -f frontend/config.js ]; then
+            cp frontend/config.example.js frontend/config.js
+          fi
+    build:
+      commands:
+        - echo "Copying frontend assets"
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - "**/*"
+  cache:
+    paths: []
+customHeaders:
+  - pattern: "**/*"
+    headers:
+      - key: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.execute-api.amazonaws.com https://*.execute-api.*.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+      - key: X-Content-Type-Options
+        value: nosniff
+      - key: X-Frame-Options
+        value: DENY
+      - key: Referrer-Policy
+        value: no-referrer
+      - key: Permissions-Policy
+        value: "camera=(self), microphone=(), geolocation=()"
+      - key: Cache-Control
+        value: "no-store"

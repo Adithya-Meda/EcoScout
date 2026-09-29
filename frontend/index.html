@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description"
+    content="EcoScout identifies waste from a photo and gives hyper-local recycling advice powered by AWS Rekognition and Amazon Bedrock." />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.execute-api.amazonaws.com https://*.execute-api.*.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" />
+  <title>EcoScout — Scan trash. Recycle right.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <canvas id="bg-canvas" class="bg-canvas"></canvas>
+  <a class="skip-link" href="#upload">Skip to upload</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="logo" href="#top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          style="display:inline;vertical-align:middle;margin-right:6px;filter:none;-webkit-text-fill-color:initial"
+          aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
+          <path d="M8 12s1-3 4-3 4 3 4 3-1 3-4 3-4-3-4-3z" />
+        </svg>EcoScout
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#upload">Scan</a>
+        <a href="#stats">Impact</a>
+        <a href="#how">How it works</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ── Hero ─────────────────────────── -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--green)" aria-hidden="true">
+              <circle cx="12" cy="12" r="12" />
+            </svg>
+            Climate Resilience · Social Good
+          </p>
+          <h1 id="hero-title">Not sure if it<br />belongs in <span>recycling?</span></h1>
+          <p class="lede">
+            Snap a photo of any trash item. EcoScout instantly tells you
+            whether it is recyclable, how to prepare it, and exactly where
+            to drop it off in your city — in seconds.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#upload">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Upload a photo
+            </a>
+            <a class="btn btn-secondary" href="#how">How it works</a>
+          </div>
+        </div>
+
+        <div class="hero-card" aria-hidden="true">
+          <div class="hero-card-icon">♻️</div>
+          <p class="hero-card-label">Aluminum can</p>
+          <p class="hero-card-status">✓ Recyclable — rinse and remove cap</p>
+          <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Blue recycling
+            bin</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Upload ────────────────────────── -->
+    <section id="upload" class="upload" aria-labelledby="upload-title">
+      <div class="wrap">
+        <div class="section-header">
+          <span class="section-label">Step 1 of 1</span>
+          <h2 id="upload-title">Scan an item</h2>
+          <p class="section-copy">JPEG or PNG, up to 5 MB. Use your phone camera for the best result.</p>
+        </div>
+
+        <div class="upload-card">
+          <form id="scan-form" novalidate>
+            <div class="field-row">
+              <label class="field">
+                <span>City</span>
+                <input id="city" name="city" type="text" autocomplete="address-level2" maxlength="80" required
+                  placeholder="e.g. Austin" />
+              </label>
+              <label class="field">
+                <span>PIN / ZIP code</span>
+                <input id="postal" name="postal" type="text" inputmode="text" autocomplete="postal-code" maxlength="10"
+                  required placeholder="e.g. 560001 or 78701" />
+              </label>
+            </div>
+
+            <div id="drop-zone" class="drop-zone" tabindex="0" role="button"
+              aria-label="Drop an image here or click to choose a file">
+              <input id="file-input" class="visually-hidden" type="file" accept="image/jpeg,image/png" />
+              <input id="camera-input" class="visually-hidden" type="file" accept="image/*;capture=camera"
+                capture="environment" />
+              <div id="scan-laser" class="scan-laser hidden"></div>
+
+              <div id="preview-wrap" class="preview-wrap hidden">
+                <img id="preview" alt="Selected waste item preview" />
+                <div class="hud-overlay">
+                  <div class="hud-corner top-left"></div>
+                  <div class="hud-corner top-right"></div>
+                  <div class="hud-corner bottom-left"></div>
+                  <div class="hud-corner bottom-right"></div>
+                  <div class="hud-tag">🎯 AWS VISION TARGETING ACTIVE</div>
+                </div>
+              </div>
+
+              <div id="drop-copy" class="drop-copy">
+                <svg class="drop-icon" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <p class="drop-title">Drag and drop a photo here</p>
+                <p class="drop-hint">or select a photo using the button below</p>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="button" id="choose-file" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M9 21V9" />
+                </svg>
+                Choose file
+              </button>
+              <button type="button" id="open-camera" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                Open camera
+              </button>
+              <button type="submit" id="submit" class="btn btn-primary" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                Analyze item
+              </button>
+            </div>
+
+            <!-- Quick Try Samples Bar -->
+            <div class="quick-try-bar">
+              <span class="quick-try-title">⚡ Quick Demo Samples:</span>
+              <div class="quick-chips">
+                <button type="button" class="chip-btn" data-city="Bengaluru" data-postal="560001" data-sample="bottle">🧴 Plastic Bottle</button>
+                <button type="button" class="chip-btn" data-city="Austin" data-postal="78701" data-sample="can">🥫 Aluminum Can</button>
+                <button type="button" class="chip-btn" data-city="Mumbai" data-postal="400001" data-sample="box">📦 Cardboard Box</button>
+                <button type="button" class="chip-btn" data-city="San Francisco" data-postal="94103" data-sample="glass">🫙 Glass Jar</button>
+              </div>
+            </div>
+
+            <div id="form-error" class="banner banner-error hidden" role="alert"></div>
+          </form>
+
+          <div id="loading" class="loading hidden" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>
+              <p id="loading-step" class="loading-step">Uploading photo & running AWS Rekognition…</p>
+              <span id="loading-substep" class="loading-substep">Matching local municipal SWM rules</span>
+            </div>
+          </div>
+
+          <section id="results" class="results hidden" aria-labelledby="results-title">
+            <div class="glass-card">
+              <div class="results-top">
+                <h2 id="results-title">Scan result</h2>
+                <div class="results-top-right">
+                  <span class="ai-badge">⚡ AWS AI Bedrock Engine</span>
+                  <button type="button" id="copy-advice-btn" class="copy-btn">📋 Copy Advice</button>
+                </div>
+              </div>
+              <p id="item-name" class="item-name"></p>
+              <p id="recyclability-badge" class="badge"></p>
+              
+              <div id="labels-wrap" class="labels-wrap hidden">
+                <span class="labels-title">Detected Vision Labels:</span>
+                <div id="labels-list" class="labels-list"></div>
+              </div>
+
+              <p id="advice" class="advice"></p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Global Knowledge & Coverage ───────────────── -->
+    <section id="stats" class="stats" aria-labelledby="stats-title">
+      <div class="wrap">
+        <div class="section-header">
+          <span class="section-label">Waste Intelligence</span>
+          <h2 id="stats-title">Recycling Guide & Supported Coverage</h2>
+          <p class="section-copy">Material guidelines, common misconceptions, and hyper-local city rules.</p>
+        </div>
+
+        <!-- Material Quick Reference Guide -->
+        <div class="knowledge-block">
+          <div class="kb-header-row">
+            <h3 class="kb-title">Material Guide</h3>
+            <div class="material-filter-bar">
+              <button type="button" class="filter-tab active" data-filter="all">All Materials</button>
+              <button type="button" class="filter-tab" data-filter="plastics">Plastics</button>
+              <button type="button" class="filter-tab" data-filter="paper">Paper & Boxes</button>
+              <button type="button" class="filter-tab" data-filter="glass">Glass</button>
+              <button type="button" class="filter-tab" data-filter="metals">Metals</button>
+              <button type="button" class="filter-tab" data-filter="ewaste">E-Waste</button>
+            </div>
+          </div>
+          <div class="material-grid">
+            <div class="material-card" data-cat="plastics">
+              <span class="mat-icon">🧴</span>
+              <h4>Plastics (#1 & #2)</h4>
+              <p>PET & HDPE bottles are widely recyclable. Rinse clean and remove caps.</p>
+            </div>
+            <div class="material-card" data-cat="paper">
+              <span class="mat-icon">📦</span>
+              <h4>Paper & Cardboard</h4>
+              <p>Flatten boxes. Must be dry and completely free of food or grease stains.</p>
+            </div>
+            <div class="material-card" data-cat="glass">
+              <span class="mat-icon">🍾</span>
+              <h4>Glass Containers</h4>
+              <p>100% recyclable infinitely. Rinse jars and separate by color where required.</p>
+            </div>
+            <div class="material-card" data-cat="metals">
+              <span class="mat-icon">🥫</span>
+              <h4>Metals & Cans</h4>
+              <p>Aluminum and steel cans save massive energy. Rinse and flatten if possible.</p>
+            </div>
+            <div class="material-card" data-cat="ewaste">
+              <span class="mat-icon">🔋</span>
+              <h4>E-Waste & Hazard</h4>
+              <p>Never place in household bins! Requires municipal hazardous waste collection.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Myths vs Facts -->
+        <div class="knowledge-block margin-top">
+          <h3 class="kb-title">Recycling Myths vs Facts</h3>
+          <div class="myth-grid">
+            <div class="myth-card-flip" tabindex="0">
+              <div class="myth-card-inner">
+                <div class="myth-card-front">
+                  <span class="myth-tag">Myth #1</span>
+                  <p class="myth-text">"If it has a recycling symbol, it can go in any recycling bin."</p>
+                  <span class="flip-hint">Hover / Tap to Reveal Fact 💡</span>
+                </div>
+                <div class="myth-card-back">
+                  <span class="fact-tag">Verified Fact</span>
+                  <p class="fact-text">Chasing arrows identify resin type, not local facility capability. Always check city rules.</p>
+                </div>
+              </div>
+            </div>
+            <div class="myth-card-flip" tabindex="0">
+              <div class="myth-card-inner">
+                <div class="myth-card-front">
+                  <span class="myth-tag">Myth #2</span>
+                  <p class="myth-text">"Items don't need to be rinsed before recycling."</p>
+                  <span class="flip-hint">Hover / Tap to Reveal Fact 💡</span>
+                </div>
+                <div class="myth-card-back">
+                  <span class="fact-tag">Verified Fact</span>
+                  <p class="fact-text">Food residue contaminates entire recycling batches, causing whole loads to end up in landfills.</p>
+                </div>
+              </div>
+            </div>
+            <div class="myth-card-flip" tabindex="0">
+              <div class="myth-card-inner">
+                <div class="myth-card-front">
+                  <span class="myth-tag">Myth #3</span>
+                  <p class="myth-text">"Paper takeaway cups go in regular paper recycling."</p>
+                  <span class="flip-hint">Hover / Tap to Reveal Fact 💡</span>
+                </div>
+                <div class="myth-card-back">
+                  <span class="fact-tag">Verified Fact</span>
+                  <p class="fact-text">Most takeaway cups have a polyethylene plastic lining that prevents paper repulping.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supported Cities & Local Rules -->
+        <div class="coverage-box margin-top">
+          <div class="coverage-header">
+            <h3>📍 Supported Cities & Coverage</h3>
+            <p>EcoScout provides hyper-local recycling rules and bin sorting advice tailored to major cities across <strong>India</strong> and the <strong>United States</strong>.</p>
+          </div>
+          <div class="coverage-details">
+            <div class="cov-col">
+              <h4>🇮🇳 India</h4>
+              <p><strong>Supported Metros:</strong> Delhi NCR, Mumbai, Bengaluru, Hyderabad, Chennai, Kolkata, Pune, Ahmedabad.</p>
+              <p>Follows Solid Waste Management Rules 2016 (wet, dry, red reject, and black sanitary bin segregation).</p>
+            </div>
+            <div class="cov-col">
+              <h4>🇺🇸 United States</h4>
+              <p><strong>Supported Metros:</strong> New York City, Los Angeles, Chicago, Houston, San Francisco Bay Area, Seattle, Boston.</p>
+              <p>Follows local municipal streams (single-stream recycling, compost, landfill, and hazardous guidelines).</p>
+            </div>
+          </div>
+          <div class="pincode-ease-note">
+            <div class="ease-badge">⚡ Hyper-Local PIN / ZIP Rules</div>
+            <p><strong>How location rules work:</strong> Simply enter your city and PIN or ZIP code (e.g. <code>560001</code> or <code>94103</code>). EcoScout automatically customizes the AI advice to match the specific municipal waste policies where you live — with no GPS tracking or login required!</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Footer ───────────────────────── -->
+  <footer id="how" class="site-footer">
+    <div class="wrap">
+      <p class="footer-brand">EcoScout</p>
+      <p class="footer-tagline">Scan trash. Recycle right.</p>
+
+      <div class="footer-grid">
+        <section>
+          <h2>Our mission</h2>
+          <p>Recycling rules are confusing and vary from city to city. EcoScout removes the guesswork — giving every household access to instant, accurate, and locally relevant recycling guidance. We believe small everyday decisions, made by millions of people, add up to a meaningful impact on our planet.</p>
+        </section>
+        <section>
+          <h2>How it works</h2>
+          <ol>
+            <li><strong>Take a photo</strong> of any item you are unsure about — a bottle, a bag, a box, or anything else.</li>
+            <li><strong>Enter your city and PIN/ZIP code</strong> so we can look up the rules that apply specifically to where you live.</li>
+            <li><strong>Get instant advice</strong> — we tell you whether to recycle, compost, or bin it, and exactly how to prepare it.</li>
+          </ol>
+        </section>
+        <section>
+          <h2>Your privacy</h2>
+          <p>We take your privacy seriously. Photos you upload are used solely to identify the item in the image — they are never stored permanently, never shared with third parties, and automatically deleted the moment your result is ready.</p>
+          <p style="margin-top:0.75rem">We do not create user accounts, we do not require login, we do not track your GPS location beyond the city and PIN/ZIP code you provide, and we do not use your data for advertising.</p>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 EcoScout. All rights reserved.</span>
+        <span>Recycle smarter. Waste less. Live greener.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+
+</html>
