@@ -22,7 +22,7 @@ customHeaders:
   - pattern: "**/*"
     headers:
       - key: Content-Security-Policy
-        value: "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.execute-api.amazonaws.com https://*.execute-api.*.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+        value: "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://*.execute-api.us-east-2.amazonaws.com https://*.execute-api.us-west-2.amazonaws.com https://*.execute-api.eu-west-1.amazonaws.com https://*.execute-api.ap-south-1.amazonaws.com https://*.execute-api.ap-southeast-1.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
       - key: X-Content-Type-Options
         value: nosniff
       - key: X-Frame-Options
