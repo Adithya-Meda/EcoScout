@@ -2,14 +2,15 @@
   "name": "ecoscout-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "EcoScout Lambda: Rekognition + Bedrock recycling advisor",
+  "description": "EcoScout Lambda: Rekognition + Gemini recycling advisor",
   "main": "handler.js",
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "3.699.0",
-    "@aws-sdk/client-rekognition": "3.699.0",
-    "@aws-sdk/client-s3": "3.699.0"
+    "@aws-sdk/client-rekognition": "^3.1142.0",
+    "@aws-sdk/client-s3": "^3.1142.0",
+    "@aws-sdk/client-secrets-manager": "^3.1142.0",
+    "@google/genai": "^2.24.0"
   }
 }

@@ -1,18 +1,21 @@
 "use strict";
 
 const {
-  BedrockRuntimeClient,
-  ConverseCommand,
-} = require("@aws-sdk/client-bedrock-runtime");
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} = require("@aws-sdk/client-secrets-manager");
+const { GoogleGenAI } = require("@google/genai");
 
-const client = new BedrockRuntimeClient({});
+const secretsManager = new SecretsManagerClient({});
+let geminiClient;
 
 const SYSTEM_PROMPT = `You are EcoScout, a global recycling and waste-disposal advisor.
 You receive computer-vision labels for a photo of a waste item, plus the user's city and postal/PIN code.
 You support users anywhere in the world — US, India, UK, Canada, Australia, and beyond.
 Use your knowledge of local municipal solid waste rules for that specific city and country.
+Treat the vision labels as the only evidence about the item's material. Never infer plastic, glass, or metal from a generic label such as bottle, flask, thermos, tumbler, or shaker. If the labels do not establish the material, call it uncertain and give cautious, conditional guidance.
 
-For Indian cities follow BBMP (Bangalore), BMC (Mumbai), MCD (Delhi), GHMCHyderabad), and other municipal corporation rules as applicable.
+For Indian cities follow BBMP (Bangalore), BMC (Mumbai), MCD (Delhi), GHMC (Hyderabad), and other municipal corporation rules as applicable.
 For Indian users: segregate into Wet Waste (green bin), Dry Recyclable (blue bin), Domestic Hazardous (red bin), and Sanitary (black bin) as per the Solid Waste Management Rules 2016.
 For US cities: use curbside single-stream or dual-stream rules specific to that municipality.
 For other countries: apply the most accurate local rule you know.
@@ -67,6 +70,26 @@ function extractJsonObject(text) {
 
 function normalizeAdvice(parsed, labels, city, postalCode) {
   const top = labels[0]?.name || "unknown item";
+  const labelText = labels
+    .flatMap((label) => [label.name, ...(label.parents || [])])
+    .join(" ");
+  const isBottleLike = /\b(bottle|flask|thermos|thermosteel|tumbler|shaker)\b/i.test(
+    labelText
+  );
+  const hasMaterialLabel =
+    /\b(stainless(?:[ -]?steel)?|steel|metal|aluminum|aluminium|plastic|polyethylene|polypropylene|polycarbonate|glass|pet|hdpe)\b/i.test(
+      labelText
+    );
+
+  if (isBottleLike && !hasMaterialLabel) {
+    return {
+      itemName: "Reusable bottle (material uncertain)",
+      isRecyclable: false,
+      recyclability: "conditionally_recyclable",
+      advice: `The detected labels identify a bottle, but do not establish its material. Do not put it in plastic recycling based on this result. If it is insulated stainless steel, check ${city} (${postalCode}) for a scrap-metal, special-collection, reuse, or take-back option. If it is plastic, recycle it only if your local program accepts that resin. Empty it, rinse it, and separate the cap if your local rules require it.`,
+    };
+  }
+
   if (!parsed || typeof parsed !== "object") {
     return {
       itemName: top,
@@ -107,36 +130,49 @@ function normalizeAdvice(parsed, labels, city, postalCode) {
   };
 }
 
-async function getRecyclingAdvice({ labels, city, postalCode }) {
-  const modelId = process.env.BEDROCK_MODEL_ID;
-  if (!modelId) {
-    throw new Error("BEDROCK_MODEL_ID is not configured.");
+async function getGeminiClient() {
+  if (geminiClient) {
+    return geminiClient;
   }
 
-  const response = await client.send(
-    new ConverseCommand({
-      modelId,
-      system: [{ text: SYSTEM_PROMPT }],
-      messages: [
-        {
-          role: "user",
-          content: [{ text: buildUserPrompt({ labels, city, postalCode }) }],
-        },
-      ],
-      inferenceConfig: {
-        maxTokens: 700,
-        temperature: 0.2,
-        topP: 0.9,
-      },
-    })
+  const secretId = process.env.GEMINI_API_KEY_SECRET_ID;
+  if (!secretId) {
+    throw new Error("GEMINI_API_KEY_SECRET_ID is not configured.");
+  }
+
+  const result = await secretsManager.send(
+    new GetSecretValueCommand({ SecretId: secretId })
   );
+  let apiKey = result.SecretString;
+  if (apiKey) {
+    try {
+      const secretObject = JSON.parse(apiKey);
+      apiKey = secretObject.apiKey || secretObject.GEMINI_API_KEY || apiKey;
+    } catch {
+      // SecretString may contain the raw API key.
+    }
+  }
+  if (!apiKey) {
+    throw new Error("Gemini API key secret is empty.");
+  }
 
-  const text = (response.output?.message?.content || [])
-    .map((block) => block.text)
-    .filter(Boolean)
-    .join("\n");
+  geminiClient = new GoogleGenAI({ apiKey });
+  return geminiClient;
+}
 
-  return normalizeAdvice(extractJsonObject(text), labels, city, postalCode);
+async function getRecyclingAdvice({ labels, city, postalCode }) {
+  const client = await getGeminiClient();
+  const response = await client.models.generateContent({
+    model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
+    contents: buildUserPrompt({ labels, city, postalCode }),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      responseMimeType: "application/json",
+      maxOutputTokens: 700,
+    },
+  });
+
+  return normalizeAdvice(extractJsonObject(response.text), labels, city, postalCode);
 }
 
 module.exports = { getRecyclingAdvice };

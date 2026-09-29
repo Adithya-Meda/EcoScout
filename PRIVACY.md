@@ -11,14 +11,14 @@ EcoScout is designed with a **Privacy-First** architecture. We believe that help
 When you use EcoScout, the application processes only the minimal data required to determine local recycling guidelines:
 
 - **Uploaded Waste Photo**: Transmitted securely to AWS Rekognition solely to identify the object (e.g. plastic bottle, aluminum can).
-- **City & Postal/PIN Code**: Used to query municipal solid waste rules (e.g. BBMP Bengaluru 3-bin rules vs US curbside rules).
+- **Detected Labels, City & Postal/PIN Code**: Sent to the Google Gemini API to generate location-specific disposal guidance. The uploaded photo itself is not sent to Gemini.
 
 ---
 
 ## 2. Information We DO NOT Collect or Store
 
 - **No User Accounts or Login**: You can use EcoScout without creating an account or logging in.
-- **No Database Storage**: We do not maintain any user database, tracking logs, or profile history.
+- **No EcoScout Database**: We do not maintain an EcoScout user database or profile history.
 - **No Precise GPS Location**: We do not request or track device GPS coordinates.
 - **No Third-Party Advertising Trackers**: No tracking cookies or advertising pixels are used.
 
@@ -27,19 +27,19 @@ When you use EcoScout, the application processes only the minimal data required 
 ## 3. Image Handling & Data Retention
 
 - **Ephemeral Processing**: Photos uploaded to EcoScout are stored in a temporary AWS S3 bucket solely for label analysis.
-- **No AI Model Training on User Images**: Uploaded images are not used to train AI models or stored permanently.
+- **Image Handling**: Uploaded images are sent to Rekognition for label detection and are not sent to Gemini. They are not stored permanently by EcoScout.
 - **Automatic Cleanup**: Temporary upload objects are automatically deleted.
 
 ---
 
 ## 4. Third-Party Infrastructure Services
 
-EcoScout utilizes enterprise AWS cloud services:
+EcoScout uses AWS infrastructure and the Google Gemini API:
 - **AWS Rekognition**: Image label detection.
-- **Amazon Bedrock**: Generative AI contextual reasoning.
+- **Google Gemini API**: Uses detected labels and the supplied city/postal code to generate advice.
 - **AWS API Gateway & Lambda**: Serverless backend execution.
 
-All data transmission between the user's browser and AWS is encrypted in transit using **TLS 1.3 / HTTPS**.
+The Gemini request contains detected labels and city/postal code, but not the uploaded image. Gemini API data handling differs by billing tier: on Google's unpaid tier, submitted prompts and responses may be used to improve Google services and may be reviewed by humans. Review [Google's Gemini API terms](https://ai.google.dev/gemini-api/terms) before using real user data. Requests are sent from the backend over HTTPS; the API key is stored in AWS Secrets Manager and is never sent to the browser.
 
 ---
 

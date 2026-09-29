@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { validateAnalyzePayload, ValidationError } = require("./validator");
 const { detectLabels } = require("./rekognition");
-const { getRecyclingAdvice } = require("./bedrock");
+const { getRecyclingAdvice } = require("./gemini");
 
 const s3 = new S3Client({});
 

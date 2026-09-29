@@ -12,7 +12,7 @@ EcoScout is built using a serverless architecture powered by 5 core AWS services
 
 1. **Amazon S3 (`Amazon Simple Storage Service`)**: Staging ground for uploaded photos with server-side encryption (SSE-S3), strict bucket policies, and ephemeral 1-day lifecycle expiration.
 2. **AWS Rekognition**: Computer vision service used for automated object detection, multi-label extraction, and confidence scoring.
-3. **Amazon Bedrock**: Generative AI service (Anthropic Claude Haiku 4.5 via the US cross-region inference profile) used for contextual reasoning against local municipal solid waste rules.
+3. **Google Gemini API**: Gemini 3.5 Flash-Lite generates contextual recycling guidance from Rekognition labels and the user's city/postal code.
 4. **AWS Lambda**: Serverless Node.js 20 execution environment running payload validation, vision AI integration, and prompt orchestration.
 5. **Amazon API Gateway**: Secure REST API Gateway enforcing TLS 1.3 encryption, CORS origins, rate limiting/throttling, usage plans, API keys, and OWASP security headers.
 
@@ -30,7 +30,7 @@ Amazon API Gateway (REST API / CORS Locked / API Key Throttled)
 AWS Lambda (Node.js 20 Serverless Handler)
   ├── 1. Upload Staging ────────► Amazon S3 (Private, Encrypted, Auto-Expire)
   ├── 2. Vision Labeling ───────► AWS Rekognition (DetectLabels API)
-  └── 3. Rule Reasoning ────────► Amazon Bedrock (Claude 3 / Nova Models)
+  └── 3. Rule Reasoning ────────► Google Gemini API (Gemini 3.5 Flash-Lite)
 ```
 
 ---
@@ -38,10 +38,10 @@ AWS Lambda (Node.js 20 Serverless Handler)
 ## ✨ Features
 
 - 👁️ **Multi-Modal AI Vision**: Identifies items instantly using computer vision label detection.
-- 🧠 **Hyper-Local Rule Reasoning**: Amazon Bedrock matches municipal solid waste rules (e.g. Indian Solid Waste Management Rules 2016 BBMP/BMC/MCD bin colors vs. US curbside single-stream).
+- 🧠 **Hyper-Local Rule Reasoning**: Gemini uses recognized item labels and location to provide practical municipal recycling guidance.
 - 📍 **PIN / ZIP Code Location Lookup**: Accepts 6-digit Indian PIN codes (e.g. `560001`, `110001`, `400018`) and 5-digit US ZIP codes (e.g. `78701`, `94103`) without requiring device GPS access.
 - ⚡ **Out-Of-The-Box Visual UX**: 3D flip myth cards, typewriter AI text streaming, floating particle canvas background, cursor spotlight glow, HUD target overlays, and 1-click quick demo chips.
-- 🔒 **Zero-Knowledge Privacy**: Ephemeral S3 storage, no user accounts, no database, and no stored PII.
+- 🔒 **Privacy-conscious**: No EcoScout user accounts or database; photos are staged temporarily in S3. Gemini receives item labels and city/postal code, not the photo. Provider data handling depends on the Gemini API billing tier.
 
 ---
 
@@ -69,7 +69,12 @@ AWS Lambda (Node.js 20 Serverless Handler)
 ### Prerequisites
 - [AWS CLI](https://aws.amazon.com/cli/) configured with deployment credentials.
 - [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html).
-- Amazon Bedrock access to the Claude Haiku 4.5 US inference profile (`us.anthropic.claude-haiku-4-5-20251001-v1:0`) in `us-east-1`.
+- A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
+
+### Gemini API Key Setup
+1. Create a Gemini API key in Google AI Studio and restrict it to the Gemini API.
+2. In AWS Secrets Manager in `us-east-1`, create a secret named `ecoscout/gemini-api-key` containing the key as its secret value. Do not put the key in frontend config or source control.
+3. Gemini API usage is billed by Google, separately from AWS credits. On Google's free tier, submitted prompts and responses may be used to improve Google services and may be reviewed; these prompts include detected labels and city/postal code. Review [Google's Gemini API terms](https://ai.google.dev/gemini-api/terms) before using real user data.
 
 ### 1. Backend Deployment (AWS SAM)
 ```bash

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: EcoScout backend — API Gateway REST, Lambda, S3, Rekognition, Bedrock
+Description: EcoScout backend — API Gateway REST, Lambda, S3, Rekognition, Gemini API
 
 Parameters:
   AllowedOrigin:
@@ -10,23 +10,15 @@ Parameters:
     AllowedPattern: ^https?://[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+$
     ConstraintDescription: Must be a full http(s) origin with no wildcard.
 
-  BedrockModelId:
+  GeminiModelId:
     Type: String
-    Default: us.anthropic.claude-haiku-4-5-20251001-v1:0
-    Description: Bedrock inference profile ID for Converse (Claude Haiku 4.5).
+    Default: gemini-3.5-flash-lite
+    Description: Gemini API model for recycling advice.
 
-  BedrockFoundationModelId:
+  GeminiApiKeySecretName:
     Type: String
-    Default: anthropic.claude-haiku-4-5-20251001-v1:0
-    Description: Foundation model ID used by the inference profile.
-
-  BedrockInferenceProfileArn:
-    Type: String
-    Default: ""
-    Description: Optional on-demand inference profile ARN if your account requires one.
-
-Conditions:
-  HasInferenceProfile: !Not [!Equals [!Ref BedrockInferenceProfileArn, ""]]
+    Default: ecoscout/gemini-api-key
+    Description: Name of the Secrets Manager secret containing the Gemini API key.
 
 Globals:
   Function:
@@ -127,12 +119,13 @@ Resources:
       FunctionName: ecoscout-analyze
       CodeUri: src/
       Handler: handler.handler
-      Description: Validate upload, Rekognition labels, Bedrock recycling advice
+      Description: Validate upload, Rekognition labels, Gemini recycling advice
       Environment:
         Variables:
           UPLOAD_BUCKET: !Ref UploadBucket
           ALLOWED_ORIGIN: !Ref AllowedOrigin
-          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          GEMINI_MODEL_ID: !Ref GeminiModelId
+          GEMINI_API_KEY_SECRET_ID: !Ref GeminiApiKeySecretName
       Events:
         Analyze:
           Type: Api
@@ -154,22 +147,11 @@ Resources:
               Action:
                 - rekognition:DetectLabels
               Resource: "*"
-            - Sid: InvokeHaikuFoundationModel
+            - Sid: ReadGeminiApiKey
               Effect: Allow
               Action:
-                - bedrock:InvokeModel
-                - bedrock:InvokeModelWithResponseStream
-              Resource:
-                - !Sub arn:aws:bedrock:*::foundation-model/${BedrockFoundationModelId}
-            - Sid: InvokeHaikuInferenceProfile
-              Effect: Allow
-              Action:
-                - bedrock:InvokeModel
-                - bedrock:InvokeModelWithResponseStream
-              Resource: !If
-                - HasInferenceProfile
-                - !Ref BedrockInferenceProfileArn
-                - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/${BedrockModelId}
+                - secretsmanager:GetSecretValue
+              Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GeminiApiKeySecretName}-*
             - Sid: FunctionLogs
               Effect: Allow
               Action:
