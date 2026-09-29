@@ -412,9 +412,9 @@
     results.classList.add("hidden");
 
     var cfg = config();
-    if (!cfg.apiUrl || !cfg.apiKey || cfg.apiKey.indexOf("REPLACE") !== -1) {
+    if (!cfg.apiUrl || cfg.apiUrl.indexOf("REPLACE") !== -1) {
       showError(
-        "Frontend is not configured. Copy config.example.js to config.js and paste the API URL and API key from sam deploy."
+        "Frontend is not configured. Copy config.example.js to config.js and paste the API URL from sam deploy."
       );
       return;
     }

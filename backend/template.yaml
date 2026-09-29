@@ -100,16 +100,6 @@ Resources:
         AllowHeaders: "'Content-Type,X-Api-Key,x-api-key'"
         AllowOrigin: "'*'"
         MaxAge: "'600'"
-      Auth:
-        UsagePlan:
-          CreateUsagePlan: PER_API
-          Description: EcoScout 100 requests per day per API key
-          Quota:
-            Limit: 100
-            Period: DAY
-          Throttle:
-            BurstLimit: 20
-            RateLimit: 10
       GatewayResponses:
         DEFAULT_4XX:
           ResponseParameters:
