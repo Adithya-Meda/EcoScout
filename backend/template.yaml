@@ -12,8 +12,8 @@ Parameters:
 
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-3-haiku-20240307-v1:0
-    Description: Bedrock model ID for Converse (Claude 3 Haiku).
+    Default: anthropic.claude-haiku-4-5-20251001-v1:0
+    Description: Bedrock model ID for Converse (Claude Haiku 4.5).
 
   BedrockInferenceProfileArn:
     Type: String
@@ -155,7 +155,7 @@ Resources:
                 - bedrock:InvokeModel
                 - bedrock:InvokeModelWithResponseStream
               Resource:
-                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+                - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0
                 - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}
             - Sid: InvokeHaikuInferenceProfile
               Effect: Allow
@@ -165,7 +165,7 @@ Resources:
               Resource: !If
                 - HasInferenceProfile
                 - !Ref BedrockInferenceProfileArn
-                - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/anthropic.claude-3-haiku-20240307-v1:0
+                - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/anthropic.claude-haiku-4-5-20251001-v1:0
             - Sid: FunctionLogs
               Effect: Allow
               Action:
