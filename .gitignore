@@ -1,6 +1,7 @@
 # AWS SAM & CloudFormation build artifacts
 .aws-sam/
 samconfig.toml
+backend/packaged.yaml
 *.env
 *.env.local
 
