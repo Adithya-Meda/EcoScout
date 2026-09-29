@@ -1,5 +1,5 @@
 # 🌿 EcoScout — Scan Trash. Recycle Right.
-
+ 
 > **AWS Builder Center — Zero to Shipped Hackathon Project (Climate Resilience & Social Good)**
 
 EcoScout removes the guesswork from recycling by combining computer vision AI with generative AI to deliver hyper-local, municipal-specific waste sorting guidance based on your city and PIN/ZIP code.
