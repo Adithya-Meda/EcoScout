@@ -15,8 +15,8 @@ EcoScout tells people whether a photographed piece of trash is recyclable **wher
 2. API Gateway REST API — `/analyze` POST, API key required, usage plan 100/day
 3. Lambda `ecoscout-analyze` — Node.js 20, 29s timeout, tracing
 4. S3 bucket — Block Public Access on, versioning on, default encryption AES-256
-5. IAM role — inline statements scoped to `uploads/*` and the Haiku model ARN
-6. Bedrock model access — Claude 3 Haiku enabled in-region
+5. IAM role — inline statements scoped to `uploads/*`, the inference profile, and its regional model ARNs
+6. Bedrock model access — Claude Haiku 4.5 US inference profile active
 7. CloudWatch log group `/aws/lambda/ecoscout-analyze`
 
 Paste stack outputs here:
@@ -32,7 +32,7 @@ Paste stack outputs here:
 | --- | --- |
 | API key + usage plan | SAM `Auth.ApiKeyRequired` and `UsagePlan` quota 100/DAY, throttle 10/20 |
 | 100 req/day per IP | **Not native to usage plans.** Quota is per API key. Documented in README. |
-| Least-privilege Lambda | S3 object prefix `uploads/*`; Bedrock foundation-model ARN; Rekognition DetectLabels (service requires `*`) |
+| Least-privilege Lambda | S3 object prefix `uploads/*`; Bedrock inference profile and matching regional foundation-model ARNs; Rekognition DetectLabels (service requires `*`) |
 | Input validation | MIME + magic bytes, 5 MB, city regex, US ZIP |
 | Temp S3 + SSE-S3 | `ServerSideEncryption: AES256` on PutObject; bucket default encryption |
 | Block public access + versioning | Bucket properties in `backend/template.yaml` |
@@ -68,7 +68,7 @@ Paste stack outputs here:
 - AWS Lambda (Node.js 20)
 - Amazon S3
 - Amazon Rekognition
-- Amazon Bedrock (Claude 3 Haiku, Converse API)
+- Amazon Bedrock (Claude Haiku 4.5 US inference profile, Converse API)
 - AWS Amplify Hosting
 - AWS IAM, CloudWatch Logs, AWS X-Ray
 - AWS SAM / CloudFormation

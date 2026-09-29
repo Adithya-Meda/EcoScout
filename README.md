@@ -12,7 +12,7 @@ EcoScout is built using a serverless architecture powered by 5 core AWS services
 
 1. **Amazon S3 (`Amazon Simple Storage Service`)**: Staging ground for uploaded photos with server-side encryption (SSE-S3), strict bucket policies, and ephemeral 1-day lifecycle expiration.
 2. **AWS Rekognition**: Computer vision service used for automated object detection, multi-label extraction, and confidence scoring.
-3. **Amazon Bedrock**: Generative AI service (powered by Anthropic Claude 3 Haiku / AWS Nova models) used for contextual reasoning against local municipal solid waste rules.
+3. **Amazon Bedrock**: Generative AI service (Anthropic Claude Haiku 4.5 via the US cross-region inference profile) used for contextual reasoning against local municipal solid waste rules.
 4. **AWS Lambda**: Serverless Node.js 20 execution environment running payload validation, vision AI integration, and prompt orchestration.
 5. **Amazon API Gateway**: Secure REST API Gateway enforcing TLS 1.3 encryption, CORS origins, rate limiting/throttling, usage plans, API keys, and OWASP security headers.
 
@@ -69,7 +69,7 @@ AWS Lambda (Node.js 20 Serverless Handler)
 ### Prerequisites
 - [AWS CLI](https://aws.amazon.com/cli/) configured with deployment credentials.
 - [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html).
-- Amazon Bedrock model access enabled in your AWS Region (e.g., `us-east-1` or `us-west-2`) for Anthropic Claude 3 Haiku (`anthropic.claude-3-haiku-20240307-v1:0`).
+- Amazon Bedrock access to the Claude Haiku 4.5 US inference profile (`us.anthropic.claude-haiku-4-5-20251001-v1:0`) in `us-east-1`.
 
 ### 1. Backend Deployment (AWS SAM)
 ```bash

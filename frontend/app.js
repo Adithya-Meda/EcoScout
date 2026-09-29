@@ -145,6 +145,36 @@
     });
   }
 
+  function normalizeImageForAnalysis(file) {
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      var objectUrl = URL.createObjectURL(file);
+      var mimeType = mimeFor(file);
+
+      image.onload = function () {
+        var scale = Math.min(1, 4096 / Math.max(image.naturalWidth, image.naturalHeight));
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          URL.revokeObjectURL(objectUrl);
+          if (!blob) {
+            reject(new Error("Could not prepare that image. Please choose another JPEG or PNG."));
+            return;
+          }
+          resolve(new File([blob], file.name, { type: mimeType }));
+        }, mimeType, mimeType === "image/jpeg" ? 0.92 : undefined);
+      };
+
+      image.onerror = function () {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Could not decode that image. Please choose another JPEG or PNG."));
+      };
+      image.src = objectUrl;
+    });
+  }
+
   function badgeClass(recyclability) {
     if (recyclability === "recyclable") {
       return "is-yes";
@@ -437,20 +467,22 @@
 
     setBusy(true);
 
-    readFileAsBase64(selectedFile)
-      .then(function (imageBase64) {
-        return fetch(cfg.apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": cfg.apiKey,
-          },
-          body: JSON.stringify({
-            imageBase64: imageBase64,
-            mimeType: mimeFor(selectedFile),
-            city: city,
-            postalCode: postalCode,
-          }),
+    normalizeImageForAnalysis(selectedFile)
+      .then(function (normalizedFile) {
+        return readFileAsBase64(normalizedFile).then(function (imageBase64) {
+          return fetch(cfg.apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": cfg.apiKey,
+            },
+            body: JSON.stringify({
+              imageBase64: imageBase64,
+              mimeType: mimeFor(normalizedFile),
+              city: city,
+              postalCode: postalCode,
+            }),
+          });
         });
       })
       .then(function (response) {

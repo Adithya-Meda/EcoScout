@@ -73,10 +73,12 @@ exports.handler = async function handler(event, context) {
   }
 
   let objectKey;
+  let processingStage = "request validation";
   try {
     const payload = validateAnalyzePayload(decodeBody(event));
     objectKey = `uploads/${crypto.randomUUID()}.${payload.extension}`;
 
+    processingStage = "image upload";
     await s3.send(
       new PutObjectCommand({
         Bucket: bucket,
@@ -91,6 +93,7 @@ exports.handler = async function handler(event, context) {
       })
     );
 
+    processingStage = "object detection";
     const labels = await detectLabels({ bucket, key: objectKey });
     if (labels.length === 0) {
       return jsonResponse(422, {
@@ -99,6 +102,7 @@ exports.handler = async function handler(event, context) {
       });
     }
 
+    processingStage = "recycling advice";
     const advice = await getRecyclingAdvice({
       labels,
       city: payload.city,
@@ -123,13 +127,17 @@ exports.handler = async function handler(event, context) {
     }
 
     console.error("analyze_failed", {
+      stage: processingStage,
       name: err.name,
       message: err.message,
+      awsRequestId: err.$metadata?.requestId,
       requestId: requestIdFrom(event, context),
     });
 
+    const requestId = requestIdFrom(event, context);
     return jsonResponse(500, {
-      error: "Analysis failed. Please retry with a smaller JPEG or PNG.",
+      error: `Analysis failed during ${processingStage}. Please try again. Reference: ${requestId}`,
+      requestId,
     });
   } finally {
     if (objectKey) {
