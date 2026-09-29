@@ -12,18 +12,14 @@ const CSP =
   "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
 
 function corsHeaders() {
-  const origin = process.env.ALLOWED_ORIGIN || "http://localhost:5500";
   return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Headers": "Content-Type,X-Api-Key",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,X-Api-Key,x-api-key",
     "Access-Control-Allow-Methods": "OPTIONS,POST",
     "Access-Control-Max-Age": "600",
     "Content-Type": "application/json; charset=utf-8",
-    "Content-Security-Policy": CSP,
     "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store",
-    Vary: "Origin",
   };
 }
 

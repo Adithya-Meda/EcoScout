@@ -97,11 +97,10 @@ Resources:
           MetricsEnabled: true
       Cors:
         AllowMethods: "'OPTIONS,POST'"
-        AllowHeaders: "'Content-Type,X-Api-Key'"
-        AllowOrigin: !Sub "'${AllowedOrigin}'"
+        AllowHeaders: "'Content-Type,X-Api-Key,x-api-key'"
+        AllowOrigin: "'*'"
         MaxAge: "'600'"
       Auth:
-        ApiKeyRequired: true
         UsagePlan:
           CreateUsagePlan: PER_API
           Description: EcoScout 100 requests per day per API key
@@ -115,18 +114,16 @@ Resources:
         DEFAULT_4XX:
           ResponseParameters:
             Headers:
-              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
-              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key'"
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key,x-api-key'"
               Access-Control-Allow-Methods: "'OPTIONS,POST'"
-              Content-Security-Policy: "'default-src ''none''; frame-ancestors ''none'''"
               X-Content-Type-Options: "'nosniff'"
         DEFAULT_5XX:
           ResponseParameters:
             Headers:
-              Access-Control-Allow-Origin: !Sub "'${AllowedOrigin}'"
-              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key'"
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Api-Key,x-api-key'"
               Access-Control-Allow-Methods: "'OPTIONS,POST'"
-              Content-Security-Policy: "'default-src ''none''; frame-ancestors ''none'''"
               X-Content-Type-Options: "'nosniff'"
 
   AnalyzeFunction:
