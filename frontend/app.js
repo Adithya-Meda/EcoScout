@@ -93,42 +93,6 @@
     dropCopy.classList.add("hidden");
   }
 
-  function createSampleImageFile(name, text, bgHex, emoji) {
-    var canvas = document.createElement("canvas");
-    canvas.width = 600;
-    canvas.height = 400;
-    var ctx = canvas.getContext("2d");
-
-    // Background gradient
-    var grad = ctx.createLinearGradient(0, 0, 600, 400);
-    grad.addColorStop(0, bgHex);
-    grad.addColorStop(1, "#0d1b12");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 600, 400);
-
-    // Emoji icon
-    ctx.font = "80px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(emoji, 300, 160);
-
-    // Label text
-    ctx.font = "bold 28px sans-serif";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(text, 300, 270);
-
-    ctx.font = "16px sans-serif";
-    ctx.fillStyle = "#22c55e";
-    ctx.fillText("EcoScout Sample Waste Item", 300, 310);
-
-    return new Promise(function (resolve) {
-      canvas.toBlob(function (blob) {
-        var file = new File([blob], name + ".jpg", { type: "image/jpeg" });
-        resolve(file);
-      }, "image/jpeg", 0.9);
-    });
-  }
-
   function readFileAsBase64(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -387,29 +351,6 @@
 
     card.addEventListener("mouseleave", function () {
       card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)";
-    });
-  });
-
-  // Quick Demo Chips Listener
-  document.querySelectorAll(".chip-btn").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var city = btn.getAttribute("data-city");
-      var sample = btn.getAttribute("data-sample");
-
-      cityInput.value = city;
-
-      var sampleMap = {
-        bottle: { name: "plastic_bottle", text: "PET Water Bottle", bg: "#166534", emoji: "🧴" },
-        can: { name: "aluminum_can", text: "Soda Beverage Can", bg: "#9a3412", emoji: "🥫" },
-        box: { name: "cardboard_box", text: "Corrugated Shipping Box", bg: "#854d0e", emoji: "📦" },
-        glass: { name: "glass_jar", text: "Clear Glass Pickle Jar", bg: "#1e40af", emoji: "🫙" }
-      };
-
-      var spec = sampleMap[sample] || sampleMap.bottle;
-
-      createSampleImageFile(spec.name, spec.text, spec.bg, spec.emoji).then(function (file) {
-        setFile(file);
-      });
     });
   });
 
