@@ -131,6 +131,7 @@ function validateAnalyzePayload(rawBody) {
     mimeType,
     extension: MIME_TO_EXT[mimeType],
     imageBuffer,
+    userItemName: typeof parsed.userItemName === "string" ? parsed.userItemName.trim() : null,
   };
 }
 

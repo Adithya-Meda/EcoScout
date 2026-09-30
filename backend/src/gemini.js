@@ -44,7 +44,7 @@ CONFIDENCE GUIDANCE:
 - If an item appears unused/clean, explicitly state "appears unused and clean, likely recyclable" in the advice to match user expectations.`;
 
 
-function buildUserPrompt({ labels, city }) {
+function buildUserPrompt({ labels, city, userItemName }) {
   const labelLines = labels
     .map(
       (label) =>
@@ -54,10 +54,14 @@ function buildUserPrompt({ labels, city }) {
     )
     .join("\n");
 
+  const userHintLine = userItemName
+    ? `\nUser's item name input: "${userItemName}"`
+    : "";
+
   return `City: ${city}
 
 Detected labels from the photo (highest confidence first):
-${labelLines || "- (none)"}
+${labelLines || "- (none)"}${userHintLine}
 
 Identify the waste item and give recycling or disposal advice specific to this location.`;
 }
@@ -187,11 +191,11 @@ async function getGeminiClient() {
   return geminiClient;
 }
 
-async function getRecyclingAdvice({ labels, city }) {
+async function getRecyclingAdvice({ labels, city, userItemName }) {
   const client = await getGeminiClient();
   const response = await client.models.generateContent({
     model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
-    contents: buildUserPrompt({ labels, city }),
+    contents: buildUserPrompt({ labels, city, userItemName }),
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",

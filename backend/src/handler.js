@@ -105,6 +105,7 @@ exports.handler = async function handler(event, context) {
     const advice = await getRecyclingAdvice({
       labels,
       city: payload.city,
+      userItemName: payload.userItemName,
     });
 
     return jsonResponse(200, {

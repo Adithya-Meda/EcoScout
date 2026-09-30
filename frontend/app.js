@@ -27,6 +27,7 @@
   var adviceEl = document.getElementById("advice");
   var labelsWrap = document.getElementById("labels-wrap");
   var labelsList = document.getElementById("labels-list");
+  var itemNameInput = document.getElementById("item-name-input");
 
   var selectedFile = null;
   var previewUrl = null;
@@ -545,6 +546,8 @@
       return;
     }
 
+    var userItemName = (itemNameInput && itemNameInput.value.trim()) || null;
+
     setBusy(true);
 
     normalizeImageForAnalysis(selectedFile)
@@ -560,6 +563,7 @@
               imageBase64: imageBase64,
               mimeType: mimeFor(normalizedFile),
               city: city,
+              userItemName: userItemName,
             }),
           });
         });
