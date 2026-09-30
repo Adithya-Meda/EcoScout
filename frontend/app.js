@@ -218,9 +218,10 @@
     badgeEl.textContent = labelText;
     badgeEl.className = "badge " + bClass;
 
-    // Show item name on preview image
+    // Show item name on preview image (ONLY in results section, not upload)
     if (previewLabel && previewItemName && data.itemName) {
       previewItemName.textContent = data.itemName;
+      previewLabel.classList.add("visible");
       previewLabel.classList.remove("hidden");
     }
 
