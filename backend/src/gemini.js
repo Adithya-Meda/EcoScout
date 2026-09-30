@@ -9,25 +9,40 @@ const { GoogleGenAI } = require("@google/genai");
 const secretsManager = new SecretsManagerClient({});
 let geminiClient;
 
-const SYSTEM_PROMPT = `You are ekoFuse.img, a global recycling and waste-disposal advisor.
+const SYSTEM_PROMPT = `You are ekoFuse.img, a global recycling and waste-disposal advisor with expertise in local municipal solid waste rules.
 You receive computer-vision labels for a photo of a waste item, plus the user's city.
-You support users anywhere in the world — US, India, UK, Canada, Australia, and beyond.
-Use your knowledge of local municipal solid waste rules for that specific city and country.
-Treat the vision labels as the only evidence about the item's material. Never infer plastic, glass, or metal from a generic label such as bottle, flask, thermos, tumbler, or shaker. If the labels do not establish the material, call it uncertain and give cautious, conditional guidance.
+Your task: identify the item, assess its condition (new/unused, lightly used, heavily used, damaged, contaminated), and provide accurate recycling or disposal guidance specific to that location.
 
-For Indian cities follow BBMP (Bangalore), BMC (Mumbai), MCD (Delhi), GHMC (Hyderabad), and other municipal corporation rules as applicable.
-For Indian users: segregate into Wet Waste (green bin), Dry Recyclable (blue bin), Domestic Hazardous (red bin), and Sanitary (black bin) as per the Solid Waste Management Rules 2016.
-For US cities: use curbside single-stream or dual-stream rules specific to that municipality.
-For other countries: apply the most accurate local rule you know.
+CONDITION ANALYSIS:
+- If the item appears NEW, CLEAN, UNUSED, or in GOOD condition → assume it CAN be recycled (unless it's inherently non-recyclable like electronics or hazardous materials)
+- If the item appears USED but CLEAN → likely recyclable (with proper preparation)
+- If the item appears HEAVILY USED, STAINED, or CONTAMINATED (food residue, grease, liquid) → may NOT be recyclable; advise disposal or special handling
+- If the item appears BROKEN or DAMAGED → check if material allows recycling or if it must be disposed as waste
 
-Respond with ONLY a single JSON object (no markdown, no commentary) using these keys:
-- itemName: short human-readable name of the primary item (e.g. "Plastic water bottle", "Cardboard box")
-- isRecyclable: boolean
+MATERIAL IDENTIFICATION:
+Treat the vision labels as primary evidence about the item's material. 
+- NEVER infer plastic, glass, or metal from generic labels like "bottle", "flask", "thermos", "tumbler", or "shaker"
+- If labels DO establish material (e.g., "plastic bottle", "glass jar", "aluminum can") → use that confidently
+- If labels are AMBIGUOUS (e.g., just "bottle" with no material label) → state the uncertainty and give conditional advice
+
+REGIONAL RULES:
+- For Indian cities: Follow Solid Waste Management Rules 2016 → Wet (green), Dry/Recyclable (blue), Hazardous (red), Sanitary (black)
+- For US cities: Use curbside single-stream or dual-stream rules specific to that municipality
+- For other countries: Apply the most accurate local rule you know
+- If uncertain about local rules, state that clearly and give the safest conservative advice
+
+RESPONSE FORMAT:
+Respond with ONLY a single JSON object (no markdown, no preamble, no commentary) using these exact keys:
+- itemName: short, human-readable name reflecting the item's apparent condition and material (e.g., "Clean unused plastic bottle", "Stained paper cup", "Broken glass jar")
+- isRecyclable: boolean — true if the item CAN be recycled in its current condition, false otherwise
 - recyclability: one of "recyclable", "conditionally_recyclable", "not_recyclable"
-- advice: 3-6 sentences of practical, plain-language guidance for that specific city. Cover which bin to use, how to prepare the item (rinse, flatten, remove caps), and any common mistakes to avoid. Write for a non-technical audience. Do not mention AWS, AI, or any technology.
+- advice: 3-7 sentences of practical, plain-language guidance specific to this city. Include: (1) which bin to use or disposal method, (2) preparation steps (rinse, flatten, remove caps/lids, separate materials), (3) warnings about contamination or damage, (4) any take-back or special-collection options. Write for a non-technical audience. Never mention AWS, AI, or technology.
 
-Be honest when labels are ambiguous. Never claim hazardous waste is safe for regular bins.
-If you are unsure about local rules for a given city, say so clearly and give the safest conservative advice.`;
+CONFIDENCE GUIDANCE:
+- Be honest about ambiguity. If unsure, say so and give conservative (safe) advice.
+- Never claim hazardous waste (electronics, batteries, fluorescent bulbs, paint) is safe for regular bins.
+- If an item appears unused/clean, explicitly state "appears unused and clean, likely recyclable" in the advice to match user expectations.`;
+
 
 function buildUserPrompt({ labels, city }) {
   const labelLines = labels
@@ -75,17 +90,30 @@ function normalizeAdvice(parsed, labels, city) {
   const isBottleLike = /\b(bottle|flask|thermos|thermosteel|tumbler|shaker)\b/i.test(
     labelText
   );
+  const isTissueOrPaper = /\b(tissue|paper|towel|napkin|facial)\b/i.test(
+    labelText
+  );
   const hasMaterialLabel =
     /\b(stainless(?:[ -]?steel)?|steel|metal|aluminum|aluminium|plastic|polyethylene|polypropylene|polycarbonate|glass|pet|hdpe)\b/i.test(
       labelText
     );
+
+  // Special handling for tissue/paper products — usually recyclable if clean/unused
+  if (isTissueOrPaper) {
+    return {
+      itemName: "Paper/tissue product (clean, unused)",
+      isRecyclable: true,
+      recyclability: "recyclable",
+      advice: `Tissue and paper products like facial tissue, paper towels, and napkins are generally NOT recyclable because they become too weak when wet. However, if this is UNUSED tissue or packaging, it can often be composted or placed in general waste. If it has been used for food, liquids, or has grease/residue, dispose of it in general waste (black bin in ${city}). Never put wet or contaminated paper in recycling. Unused packaging paper can go in dry waste or recycling depending on your local rules.`,
+    };
+  }
 
   if (isBottleLike && !hasMaterialLabel) {
     return {
       itemName: "Reusable bottle (material uncertain)",
       isRecyclable: false,
       recyclability: "conditionally_recyclable",
-      advice: `The detected labels identify a bottle, but do not establish its material. Do not put it in plastic recycling based on this result. If it is insulated stainless steel, check your municipal guidance in ${city} for a scrap-metal, special-collection, reuse, or take-back option. If it is plastic, recycle it only if your local program accepts that resin. Empty it, rinse it, and separate the cap if your local rules require it.`,
+      advice: `The detected labels identify a bottle, but do not establish its material. Do not put it in plastic recycling based on this result. If it appears to be clean, unused, or in good condition, check if it can be reused or donated. If it is insulated stainless steel, check your municipal guidance in ${city} for a scrap-metal, special-collection, reuse, or take-back option. If it is plastic, recycle it only if your local program accepts that resin and the bottle is clean. Empty it, rinse it, and separate the cap if your local rules require it.`,
     };
   }
 
@@ -94,7 +122,7 @@ function normalizeAdvice(parsed, labels, city) {
       itemName: top,
       isRecyclable: false,
       recyclability: "conditionally_recyclable",
-      advice: `We detected ${top} in ${city}. Local recycling rules vary. Rinse the item if it held food or liquid, check your municipal recycling guide, and keep plastic bags, food residue, and electronics out of regular recycling bins.`,
+      advice: `We detected ${top} in ${city}. Local recycling rules vary. Assess the item's condition: if it appears clean and unused, it is likely recyclable. If it is stained, contaminated, or damaged, dispose of it in general waste. Rinse items that held food or liquid, check your municipal recycling guide, and keep plastic bags, food residue, and electronics out of regular recycling bins.`,
     };
   }
 
