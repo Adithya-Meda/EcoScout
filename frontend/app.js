@@ -327,58 +327,93 @@
     draw();
   })();
 
-  // ── Hero Card Carousel: Particle Burst & Crystal Reformation ───
+  // ── Hero Card Carousel: Crystal Drizzle Effect ────────────────
   (function initCarousel() {
-    var carouselTrack = document.querySelector(".carousel-track");
-    var cards = document.querySelectorAll(".carousel-card");
-    
-    if (!carouselTrack || cards.length === 0) return;
+    var heroCard = document.querySelector(".hero-card");
+    if (!heroCard) return;
 
-    var currentSlide = 0;
+    var cardData = [
+      { icon: "🥫", label: "Aluminum can", status: "✓ Recyclable — rinse and remove cap", location: "Blue recycling bin" },
+      { icon: "🧴", label: "Plastic bottle", status: "✓ Recyclable — rinse and cap off", location: "Clear recycling bin" },
+      { icon: "🍾", label: "Glass jar", status: "✓ Recyclable — rinse thoroughly", location: "Glass recycling bin" },
+      { icon: "📦", label: "Cardboard box", status: "✓ Recyclable — flatten before disposal", location: "Brown recycling bin" },
+      { icon: "☕", label: "Paper coffee cup", status: "⚠ Not recyclable — plastic lining", location: "General trash bin" }
+    ];
+
+    var currentIndex = 0;
     var isAnimating = false;
-    var totalSlides = cards.length;
 
-    function cleanupAllCards() {
-      cards.forEach(function (card) {
-        card.classList.remove("is-active", "is-exiting");
-      });
+    function createCrystalParticles() {
+      var rect = heroCard.getBoundingClientRect();
+      var particleCount = 12;
+
+      for (var i = 0; i < particleCount; i++) {
+        var particle = document.createElement("div");
+        particle.className = "crystal-particle particle-drizzle";
+        
+        var randomX = Math.random() * rect.width - rect.width / 2;
+        var randomDelay = Math.random() * 200;
+        var randomDrift = (Math.random() - 0.5) * 150;
+        
+        particle.textContent = ["✨", "💎", "🔷", "🔹"][Math.floor(Math.random() * 4)];
+        particle.style.left = (rect.left + rect.width / 2 + randomX) + "px";
+        particle.style.top = rect.top + "px";
+        particle.style.setProperty("--drift", randomDrift + "px");
+        particle.style.animation = `particleDrizzle 1.2s ease-in ${randomDelay}ms forwards`;
+        
+        document.body.appendChild(particle);
+
+        setTimeout(function(p) {
+          p.remove();
+        }, 1200 + randomDelay, particle);
+      }
     }
 
-    function advanceToNextSlide() {
+    function updateCardContent(index) {
+      var data = cardData[index];
+      var iconEl = heroCard.querySelector(".hero-card-icon");
+      var labelEl = heroCard.querySelector(".hero-card-label");
+      var statusEl = heroCard.querySelector(".hero-card-status");
+      var locationEl = heroCard.querySelectorAll(".hero-card-status")[1];
+
+      iconEl.textContent = data.icon;
+      labelEl.textContent = data.label;
+      statusEl.textContent = data.status;
+      locationEl.textContent = "Drop off: " + data.location;
+    }
+
+    function advanceCard() {
       if (isAnimating) return;
-      
       isAnimating = true;
 
-      var previousSlide = currentSlide;
-      currentSlide = (currentSlide + 1) % totalSlides;
+      // Create drizzling crystals
+      createCrystalParticles();
 
-      // Trigger burst animation on current card
-      cards[previousSlide].classList.add("is-exiting");
+      // Shatter the card
+      heroCard.classList.add("is-shattering");
 
-      // After burst completes, show new card with crystal formation
-      setTimeout(function () {
-        cleanupAllCards();
-        cards[currentSlide].classList.add("is-active");
-        isAnimating = false;
-      }, 850); // Match the burst animation duration
+      // After shatter completes, update content and fade in
+      setTimeout(function() {
+        currentIndex = (currentIndex + 1) % cardData.length;
+        updateCardContent(currentIndex);
+        
+        heroCard.classList.remove("is-shattering");
+        heroCard.classList.add("is-entering");
+
+        setTimeout(function() {
+          heroCard.classList.remove("is-entering");
+          isAnimating = false;
+        }, 800);
+      }, 700); // Timing for shatter animation
     }
 
-    // Initialize: show first card
-    cleanupAllCards();
-    cards[0].classList.add("is-active");
+    // Click handler
+    heroCard.addEventListener("click", advanceCard);
 
-    // Click handler on carousel to advance
-    carouselTrack.addEventListener("click", function () {
-      advanceToNextSlide();
-    });
-
-    // Optional: Add cursor hint
-    carouselTrack.style.cursor = "pointer";
-    
-    // Optional: Keyboard support (right arrow to advance)
-    document.addEventListener("keydown", function (e) {
+    // Keyboard support
+    document.addEventListener("keydown", function(e) {
       if (e.key === "ArrowRight") {
-        advanceToNextSlide();
+        advanceCard();
       }
     });
   })();
