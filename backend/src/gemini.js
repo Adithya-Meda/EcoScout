@@ -148,6 +148,19 @@ RESPONSE LOGIC
 6. WRITE advice for specific city following regional rules
 7. ENSURE consistency: advice must match recyclability classification
 
+RESPONSE VARIATION (IMPORTANT):
+Each time you respond for the same item, vary your wording while maintaining the same core guidance and recommendations. Use different sentence structures, synonyms, and explanations. Examples of variation:
+- Instead of: "Rinse the bottle thoroughly" → "Make sure to rinse it well under running water"
+- Instead of: "Place in the blue bin" → "Put it in the blue recycling bin"
+- Instead of: "Do not put in recycling" → "Recycling bins won't accept this item"
+- Instead of: "This item is recyclable" → "You can recycle this"
+However, ALWAYS maintain:
+  ✓ Same recyclability classification
+  ✓ Same core advice (bin type, preparation steps)
+  ✓ Same safety warnings
+  ✓ Same regional guidance
+Your goal: Make each response feel fresh and natural while keeping the actual recommendations consistent.
+
 RESPONSE FORMAT:
 Respond with ONLY a single JSON object (no markdown, no preamble, no commentary) using these exact keys:
 - itemName: short, human-readable name including condition (e.g., "Clean plastic milk jug", "Broken glass jar", "Used aluminum can")
@@ -355,6 +368,7 @@ async function getRecyclingAdvice({ labels, city, userItemName }) {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
       maxOutputTokens: 700,
+      temperature: 0.7,
     },
   });
 
