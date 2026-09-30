@@ -34,12 +34,23 @@ RIGID PLASTIC ITEMS (combs, toothbrushes, toys, utensils, compact discs, etc.):
 - Recyclable in dry waste bins (India) or curbside (US)
 - Mark as "recyclable" or "conditionally_recyclable" IF advice says to put in dry/recycling bin
 
-PAPER & CARDBOARD:
-Clean cardboard boxes, paper, newspaper, magazines → RECYCLABLE (must be dry, clean)
-Paper soaked with food/grease → NOT RECYCLABLE (compostable if available)
-Tissue paper, paper towels, napkins → NOT RECYCLABLE (too weak when wet)
-Paper with plastic coating (takeaway cups, wax-lined) → NOT RECYCLABLE (plastic lining prevents repulping)
-Glossy/shiny packaging → CONDITIONALLY RECYCLABLE (check local rules)
+TISSUE & PAPER PRODUCTS (Condition-Critical):
+UNUSED/CLEAN tissue, paper towels, napkins:
+  - Can be COMPOSTED (if program exists in city)
+  - Can be placed in GENERAL WASTE (safest option)
+  - NOT typically recyclable (too weak when wet)
+  - Mark as "recyclable" IF compostable program exists, else "conditionally_recyclable"
+  - Advice: "Compost if available, otherwise place in general waste (black/green bin)"
+
+USED/SOILED tissue, paper towels, napkins:
+  - Contaminated with food/grease/liquids → NOT RECYCLABLE
+  - Mark as "not_recyclable"
+  - Advice: "Dispose in general waste (black bin). Contaminated paper damages entire recycling batches."
+
+CLEAN packaging paper (unused wrapping, kraft paper):
+  - Can go in DRY WASTE or RECYCLING (if dry and clean)
+  - Mark as "recyclable"
+  - Advice: "Ensure completely dry, flatten, place in blue bin or recycling."
 
 GLASS:
 Clear, green, brown glass bottles/jars → RECYCLABLE (rinse, remove caps)
@@ -217,13 +228,27 @@ function normalizeAdvice(parsed, labels, city) {
       labelText
     );
 
-  // Special handling for tissue/paper products — usually recyclable if clean/unused
+  // Special handling for tissue/paper products — condition-based
   if (isTissueOrPaper) {
+    // Try to detect from Gemini response first, fall back to condition assessment
+    const geminiResult = parsed && typeof parsed === "object" ? parsed : null;
+    
+    if (geminiResult && geminiResult.recyclability) {
+      // Use Gemini's classification if available
+      return {
+        itemName: geminiResult.itemName || "Paper/tissue product",
+        isRecyclable: geminiResult.isRecyclable !== false,
+        recyclability: geminiResult.recyclability,
+        advice: geminiResult.advice || `Check local recycling rules in ${city} for tissue and paper products.`,
+      };
+    }
+    
+    // Fallback: assume clean/unused if not parsed
     return {
-      itemName: "Paper/tissue product (clean, unused)",
+      itemName: "Clean unused tissue or paper product",
       isRecyclable: true,
       recyclability: "recyclable",
-      advice: `Tissue and paper products like facial tissue, paper towels, and napkins are generally NOT recyclable because they become too weak when wet. However, if this is UNUSED tissue or packaging, it can often be composted or placed in general waste. If it has been used for food, liquids, or has grease/residue, dispose of it in general waste (black bin in ${city}). Never put wet or contaminated paper in recycling. Unused packaging paper can go in dry waste or recycling depending on your local rules.`,
+      advice: `Unused tissue, paper towels, or napkins can be composted if your facility accepts them. Alternatively, place in general waste (black bin in ${city}). If this item has been used for food, liquids, grease, or is contaminated, it is NOT recyclable — dispose in general waste only. Never put wet or contaminated paper in recycling bins as it contaminates the entire batch. Check if your city offers composting programs for clean paper products.`,
     };
   }
 
