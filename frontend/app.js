@@ -252,7 +252,7 @@
       } else {
         bannerIcon.textContent = "⚠";
         bannerText.textContent = "Check local rules for this item";
-        statusBanner.className = "status-banner";
+        statusBanner.className = "status-banner warning-banner";
       }
       statusBanner.classList.remove("hidden");
     }
