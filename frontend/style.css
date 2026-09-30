@@ -664,6 +664,56 @@ h1 span {
   50% { opacity: 1; }
 }
 
+/* ═══════════════════════════════════════════════════════════ */
+/* DANGER WARNING BANNER FOR NOT RECYCLABLE ITEMS             */
+/* ═══════════════════════════════════════════════════════════ */
+.danger-warning {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: linear-gradient(135deg, rgba(248,113,113,0.2), rgba(220,38,38,0.15));
+  border: 2px solid rgba(248,113,113,0.6);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  animation: warningSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 0 20px rgba(248,113,113,0.25),
+    0 4px 16px rgba(248,113,113,0.15);
+}
+
+.danger-warning.hidden { display: none; }
+
+.danger-icon {
+  font-size: 2rem; flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(248,113,113,0.6));
+  animation: dangerIconBounce 2.5s ease-in-out infinite;
+}
+
+.danger-text {
+  font-weight: 700; font-size: 1.05rem;
+  color: #ff9999; line-height: 1.4;
+}
+
+@keyframes warningSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes dangerIconBounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.15) rotate(0deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+}
+
 .results-top {
   display: flex; justify-content: space-between;
   align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;

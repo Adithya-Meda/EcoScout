@@ -165,6 +165,7 @@
 
   var copyBtn = document.getElementById("copy-advice-btn");
   var activeTypewriter = null;
+  var dangerWarning = document.getElementById("danger-warning");
 
   function streamText(el, text) {
     if (activeTypewriter) {
@@ -220,6 +221,15 @@
       if (data.recyclability === "not_recyclable") {
         resultsCard.classList.add("danger-card");
         triggerDangerShake(badgeEl);
+      }
+    }
+
+    // Show/hide danger warning banner
+    if (dangerWarning) {
+      if (data.recyclability === "not_recyclable") {
+        dangerWarning.classList.remove("hidden");
+      } else {
+        dangerWarning.classList.add("hidden");
       }
     }
 
