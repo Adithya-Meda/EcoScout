@@ -216,16 +216,18 @@
     badgeEl.textContent = labelText;
     badgeEl.className = "badge " + bClass;
 
-    // Apply danger/success class to entire results card
+    // Apply danger/success/warning class to entire results card
     var resultsCard = document.querySelector(".glass-card");
     if (resultsCard) {
-      resultsCard.classList.remove("danger-card", "success-card");
+      resultsCard.classList.remove("danger-card", "success-card", "warning-card");
       if (data.recyclability === "not_recyclable") {
         resultsCard.classList.add("danger-card");
         triggerDangerShake(badgeEl);
-      } else if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
+      } else if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable" && data.recyclability !== "conditionally_recyclable")) {
         resultsCard.classList.add("success-card");
         triggerSparkles(badgeEl);
+      } else {
+        resultsCard.classList.add("warning-card");
       }
     }
 
