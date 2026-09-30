@@ -213,10 +213,18 @@
     badgeEl.textContent = labelText;
     badgeEl.className = "badge " + bClass;
 
+    // Apply danger class to entire results card for "not recyclable"
+    var resultsCard = document.querySelector(".glass-card");
+    if (resultsCard) {
+      resultsCard.classList.remove("danger-card");
+      if (data.recyclability === "not_recyclable") {
+        resultsCard.classList.add("danger-card");
+        triggerDangerShake(badgeEl);
+      }
+    }
+
     if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
       triggerSparkles(badgeEl);
-    } else if (data.recyclability === "not_recyclable") {
-      triggerDangerShake(badgeEl);
     }
 
     // Typewriter text streaming for advice

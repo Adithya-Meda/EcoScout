@@ -619,12 +619,49 @@ h1 span {
   -webkit-backdrop-filter: var(--blur);
   box-shadow: var(--shadow-lg), var(--glow-green);
   position: relative; overflow: hidden;
+  transition: all 0.4s ease;
 }
 
 .glass-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(34,197,94,0.5), transparent);
+}
+
+/* DANGER STATE: NOT RECYCLABLE */
+.glass-card.danger-card {
+  background: linear-gradient(145deg, rgba(220,38,38,0.18), rgba(30,10,10,0.8));
+  border: 2px solid rgba(248,113,113,0.5);
+  box-shadow: 
+    0 0 40px rgba(248,113,113,0.25),
+    inset 0 0 20px rgba(248,113,113,0.08),
+    0 8px 32px rgba(248,113,113,0.15);
+  animation: dangerPulse 2s ease-in-out infinite;
+}
+
+.glass-card.danger-card::before {
+  background: linear-gradient(90deg, transparent, rgba(248,113,113,0.6), transparent);
+  animation: dangerBorderPulse 2s ease-in-out infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 40px rgba(248,113,113,0.25),
+      inset 0 0 20px rgba(248,113,113,0.08),
+      0 8px 32px rgba(248,113,113,0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 60px rgba(248,113,113,0.35),
+      inset 0 0 30px rgba(248,113,113,0.12),
+      0 12px 48px rgba(248,113,113,0.25);
+  }
+}
+
+@keyframes dangerBorderPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .results-top {
