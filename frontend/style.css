@@ -626,17 +626,16 @@ h1 span {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(34,197,94,0.5), transparent);
+  transition: all 0.4s ease;
 }
 
-/* DANGER STATE: NOT RECYCLABLE */
+/* DANGER STATE: NOT RECYCLABLE - RED GLOWING BORDER */
 .glass-card.danger-card {
-  background: linear-gradient(145deg, rgba(220,38,38,0.18), rgba(30,10,10,0.8));
-  border: 2px solid rgba(248,113,113,0.5);
+  border-color: rgba(248,113,113,0.5);
   box-shadow: 
     0 0 40px rgba(248,113,113,0.25),
-    inset 0 0 20px rgba(248,113,113,0.08),
     0 8px 32px rgba(248,113,113,0.15);
-  animation: dangerPulse 2s ease-in-out infinite;
+  animation: dangerBorderPulse 2s ease-in-out infinite;
 }
 
 .glass-card.danger-card::before {
@@ -644,74 +643,98 @@ h1 span {
   animation: dangerBorderPulse 2s ease-in-out infinite;
 }
 
-@keyframes dangerPulse {
+/* SUCCESS STATE: RECYCLABLE - GREEN GLOWING BORDER */
+.glass-card.success-card {
+  border-color: rgba(34,197,94,0.4);
+  box-shadow: 
+    0 0 40px rgba(34,197,94,0.3),
+    0 8px 32px rgba(34,197,94,0.2);
+  animation: successBorderPulse 2s ease-in-out infinite;
+}
+
+.glass-card.success-card::before {
+  animation: successBorderPulse 2s ease-in-out infinite;
+}
+
+@keyframes dangerBorderPulse {
   0%, 100% {
+    opacity: 0.6;
     box-shadow: 
       0 0 40px rgba(248,113,113,0.25),
-      inset 0 0 20px rgba(248,113,113,0.08),
       0 8px 32px rgba(248,113,113,0.15);
   }
   50% {
+    opacity: 1;
     box-shadow: 
       0 0 60px rgba(248,113,113,0.35),
-      inset 0 0 30px rgba(248,113,113,0.12),
       0 12px 48px rgba(248,113,113,0.25);
   }
 }
 
-@keyframes dangerBorderPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+@keyframes successBorderPulse {
+  0%, 100% {
+    opacity: 0.7;
+    box-shadow: 
+      0 0 40px rgba(34,197,94,0.3),
+      0 8px 32px rgba(34,197,94,0.2);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 
+      0 0 60px rgba(34,197,94,0.4),
+      0 12px 48px rgba(34,197,94,0.3);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/* DANGER WARNING BANNER FOR NOT RECYCLABLE ITEMS             */
+/* STATUS BANNER - SMALL, COMPACT RECYCLABLE/NOT RECYCLABLE   */
 /* ═══════════════════════════════════════════════════════════ */
-.danger-warning {
-  display: flex; align-items: center; gap: 0.75rem;
-  background: linear-gradient(135deg, rgba(248,113,113,0.2), rgba(220,38,38,0.15));
-  border: 2px solid rgba(248,113,113,0.6);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.25rem;
-  margin: 1.25rem 0;
-  animation: warningSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.1),
-    0 0 20px rgba(248,113,113,0.25),
-    0 4px 16px rgba(248,113,113,0.15);
+.status-banner {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius);
+  margin: 0.85rem 0 1.25rem;
+  font-size: 0.9rem; font-weight: 600;
+  animation: bannerSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border: 1px solid transparent;
 }
 
-.danger-warning.hidden { display: none; }
+.status-banner.hidden { display: none; }
 
-.danger-icon {
-  font-size: 2rem; flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(248,113,113,0.6));
-  animation: dangerIconBounce 2.5s ease-in-out infinite;
+/* Green banner for recyclable */
+.status-banner.recyclable {
+  background: rgba(34,197,94,0.2);
+  color: #4ade80;
+  border-color: rgba(34,197,94,0.4);
+  box-shadow: 0 0 16px rgba(34,197,94,0.2);
 }
 
-.danger-text {
-  font-weight: 700; font-size: 1.05rem;
-  color: #ff9999; line-height: 1.4;
+/* Red banner for not recyclable */
+.status-banner.not-recyclable {
+  background: rgba(248,113,113,0.2);
+  color: #ff9999;
+  border-color: rgba(248,113,113,0.4);
+  box-shadow: 0 0 16px rgba(248,113,113,0.2);
 }
 
-@keyframes warningSlideIn {
+.banner-icon {
+  font-size: 1.1rem; flex-shrink: 0;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.banner-text {
+  line-height: 1.3;
+}
+
+@keyframes bannerSlideIn {
   0% {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-    filter: blur(8px);
+    transform: translateY(-12px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
+    transform: translateY(0);
   }
-}
-
-@keyframes dangerIconBounce {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(-5deg); }
-  50% { transform: scale(1.15) rotate(0deg); }
-  75% { transform: scale(1.1) rotate(5deg); }
 }
 
 .results-top {

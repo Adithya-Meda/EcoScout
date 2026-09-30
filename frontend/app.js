@@ -165,7 +165,9 @@
 
   var copyBtn = document.getElementById("copy-advice-btn");
   var activeTypewriter = null;
-  var dangerWarning = document.getElementById("danger-warning");
+  var statusBanner = document.getElementById("status-banner");
+  var bannerIcon = document.getElementById("banner-icon");
+  var bannerText = document.getElementById("banner-text");
 
   function streamText(el, text) {
     if (activeTypewriter) {
@@ -214,23 +216,35 @@
     badgeEl.textContent = labelText;
     badgeEl.className = "badge " + bClass;
 
-    // Apply danger class to entire results card for "not recyclable"
+    // Apply danger/success class to entire results card
     var resultsCard = document.querySelector(".glass-card");
     if (resultsCard) {
-      resultsCard.classList.remove("danger-card");
+      resultsCard.classList.remove("danger-card", "success-card");
       if (data.recyclability === "not_recyclable") {
         resultsCard.classList.add("danger-card");
         triggerDangerShake(badgeEl);
+      } else if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
+        resultsCard.classList.add("success-card");
+        triggerSparkles(badgeEl);
       }
     }
 
-    // Show/hide danger warning banner
-    if (dangerWarning) {
+    // Show/hide status banner with appropriate message
+    if (statusBanner) {
       if (data.recyclability === "not_recyclable") {
-        dangerWarning.classList.remove("hidden");
+        bannerIcon.textContent = "✗";
+        bannerText.textContent = "This item should NOT go in recycling bin";
+        statusBanner.className = "status-banner not-recyclable";
+      } else if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
+        bannerIcon.textContent = "✓";
+        bannerText.textContent = "This item is recyclable";
+        statusBanner.className = "status-banner recyclable";
       } else {
-        dangerWarning.classList.add("hidden");
+        bannerIcon.textContent = "⚠";
+        bannerText.textContent = "Check local rules for this item";
+        statusBanner.className = "status-banner";
       }
+      statusBanner.classList.remove("hidden");
     }
 
     if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
