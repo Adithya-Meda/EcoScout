@@ -199,11 +199,12 @@ h1 span {
   animation: fadeUp 0.7s 0.24s ease both;
 }
 
-/* ─── Hero Card Carousel ─────────────────────────────────────── */
+/* ─── Hero Card Carousel (Particle Burst & Crystal Reformation) ── */
 .hero-carousel {
   position: relative;
   height: 360px;
   perspective: 1200px;
+  cursor: pointer;
 }
 
 .carousel-track {
@@ -219,102 +220,104 @@ h1 span {
   top: 0;
   left: 0;
   opacity: 0;
-  transform: translateX(100%) rotateY(-45deg) translateZ(-100px);
+  transform: scale(0.3) translateZ(-200px);
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease, pointer-events 0.3s ease;
   z-index: 1;
 }
 
 .carousel-card.is-active {
   opacity: 1;
-  transform: translateX(0) rotateY(0deg) translateZ(0px);
+  transform: scale(1) translateZ(0px);
   pointer-events: auto;
   z-index: 10;
+  animation: crystalFormation 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .carousel-card.is-exiting {
-  animation: cardFallAway 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: particleBurst 0.85s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+  z-index: 5;
 }
 
-.carousel-card.is-waiting {
-  opacity: 0;
-  transform: translateX(-100%) rotateY(45deg) translateZ(-100px);
-  z-index: 0;
-}
-
-@keyframes cardFallAway {
+/* ──── PARTICLE BURST: Card explodes into orbital particles ──── */
+@keyframes particleBurst {
   0% {
     opacity: 1;
-    transform: translateX(0) rotateY(0deg) translateZ(0px) rotateZ(0deg);
-    pointer-events: auto;
+    transform: scale(1) translateZ(0px) rotate(0deg);
+    filter: brightness(1);
   }
-  25% {
-    transform: translateX(20px) rotateY(15deg) translateZ(50px) rotateZ(5deg);
+  20% {
+    /* Bulge outward before burst */
+    transform: scale(1.15) translateZ(30px) rotate(2deg);
+    filter: brightness(1.2);
   }
   50% {
-    opacity: 1;
-    transform: translateX(-80px) rotateY(-25deg) translateZ(80px) rotateZ(-8deg) translateY(20px);
-  }
-  75% {
-    opacity: 0.6;
-    transform: translateX(-200px) rotateY(-60deg) translateZ(120px) rotateZ(-15deg) translateY(100px);
+    /* Spread particles in orbital pattern */
+    opacity: 0.4;
+    transform: scale(0.4) translateZ(100px) rotate(180deg);
+    filter: brightness(0.5) blur(2px);
   }
   100% {
+    /* Scatter to edges, fade to nothing */
     opacity: 0;
-    transform: translateX(-400px) rotateY(-90deg) translateZ(150px) rotateZ(-25deg) translateY(360px);
-    pointer-events: none;
+    transform: scale(0.05) translateZ(200px) rotate(360deg);
+    filter: brightness(0) blur(8px);
   }
 }
 
-@keyframes cardEnterFromLeft {
+/* ──── CRYSTAL FORMATION: New card materializes from center ──── */
+@keyframes crystalFormation {
   0% {
     opacity: 0;
-    transform: translateX(-400px) rotateY(90deg) translateZ(150px) rotateZ(25deg) translateY(360px);
-    pointer-events: none;
+    transform: scale(0.2) translateZ(-150px) rotate(-30deg);
+    filter: brightness(0.3) blur(8px) hue-rotate(180deg);
+  }
+  25% {
+    /* Shimmer phase */
+    opacity: 0.6;
+    transform: scale(0.35) translateZ(-80px) rotate(-15deg);
+    filter: brightness(1.3) blur(4px) hue-rotate(90deg);
+  }
+  50% {
+    /* Crystallization snap */
+    opacity: 0.95;
+    transform: scale(0.8) translateZ(-20px) rotate(-5deg);
+    filter: brightness(1.1) blur(1px) hue-rotate(0deg);
+  }
+  75% {
+    /* Settle and glow */
+    opacity: 1;
+    transform: scale(1.05) translateZ(10px) rotate(1deg);
+    filter: brightness(1.15) blur(0px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) rotateY(0deg) translateZ(0px) rotateZ(0deg);
-    pointer-events: auto;
+    transform: scale(1) translateZ(0px) rotate(0deg);
+    filter: brightness(1);
   }
 }
 
-.carousel-card.is-entering {
-  animation: cardEnterFromLeft 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* Carousel Navigation Indicators */
-.carousel-nav {
+/* ──── Glow pulse on materialization ──── */
+.carousel-card.is-active::after {
+  content: '';
   position: absolute;
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  z-index: 20;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(34,197,94,0.6) 0%, transparent 70%);
+  border-radius: var(--radius-xl);
+  opacity: 0;
+  pointer-events: none;
+  animation: glowPulse 0.9s ease-out;
+  z-index: -1;
 }
 
-.carousel-indicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(34,197,94,0.3);
-  border: 1px solid rgba(34,197,94,0.5);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-block;
-}
-
-.carousel-indicator.is-active {
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green-glow);
-  transform: scale(1.3);
-}
-
-.carousel-indicator:hover {
-  background: rgba(34,197,94,0.6);
-  transform: scale(1.15);
+@keyframes glowPulse {
+  0% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
 }
 
 /* Shared Hero Card Styles ────────────────────────────────────── */

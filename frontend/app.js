@@ -327,135 +327,59 @@
     draw();
   })();
 
-  // ── Hero Card Carousel System ────────────────────────────────
+  // ── Hero Card Carousel: Particle Burst & Crystal Reformation ───
   (function initCarousel() {
     var carouselTrack = document.querySelector(".carousel-track");
-    var indicators = document.querySelectorAll(".carousel-indicator");
     var cards = document.querySelectorAll(".carousel-card");
     
     if (!carouselTrack || cards.length === 0) return;
 
     var currentSlide = 0;
-    var isTransitioning = false;
-    var autoRotateTimer = null;
-    var AUTO_ROTATE_INTERVAL = 6000; // 6 seconds per slide
+    var isAnimating = false;
+    var totalSlides = cards.length;
 
-    function updateSlide(newSlide) {
-      if (isTransitioning) return;
-      
-      isTransitioning = true;
-      var totalSlides = cards.length;
-      var previousSlide = currentSlide;
-      currentSlide = (newSlide + totalSlides) % totalSlides;
-
-      // Remove all state classes
+    function cleanupAllCards() {
       cards.forEach(function (card) {
-        card.classList.remove("is-active", "is-exiting", "is-entering", "is-waiting");
+        card.classList.remove("is-active", "is-exiting");
       });
-      indicators.forEach(function (indicator) {
-        indicator.classList.remove("is-active");
-      });
+    }
 
-      // Exit previous card
+    function advanceToNextSlide() {
+      if (isAnimating) return;
+      
+      isAnimating = true;
+
+      var previousSlide = currentSlide;
+      currentSlide = (currentSlide + 1) % totalSlides;
+
+      // Trigger burst animation on current card
       cards[previousSlide].classList.add("is-exiting");
 
-      // Mark all others as waiting
-      for (var i = 0; i < totalSlides; i++) {
-        if (i !== previousSlide && i !== currentSlide) {
-          cards[i].classList.add("is-waiting");
-        }
-      }
-
-      // Activate new card after exit animation starts
+      // After burst completes, show new card with crystal formation
       setTimeout(function () {
-        cards[currentSlide].classList.add("is-entering", "is-active");
-        indicators[currentSlide].classList.add("is-active");
-        isTransitioning = false;
-      }, 50);
-
-      // Update indicator immediately
-      indicators[currentSlide].classList.add("is-active");
+        cleanupAllCards();
+        cards[currentSlide].classList.add("is-active");
+        isAnimating = false;
+      }, 850); // Match the burst animation duration
     }
 
-    function nextSlide() {
-      updateSlide(currentSlide + 1);
-      resetAutoRotate();
-    }
-
-    function prevSlide() {
-      updateSlide(currentSlide - 1);
-      resetAutoRotate();
-    }
-
-    function goToSlide(slideIndex) {
-      updateSlide(slideIndex);
-      resetAutoRotate();
-    }
-
-    function resetAutoRotate() {
-      if (autoRotateTimer) {
-        clearInterval(autoRotateTimer);
-      }
-      startAutoRotate();
-    }
-
-    function startAutoRotate() {
-      autoRotateTimer = setInterval(nextSlide, AUTO_ROTATE_INTERVAL);
-    }
-
-    // Initialize first slide
+    // Initialize: show first card
+    cleanupAllCards();
     cards[0].classList.add("is-active");
-    indicators[0].classList.add("is-active");
-    for (var i = 1; i < cards.length; i++) {
-      cards[i].classList.add("is-waiting");
-    }
 
-    // Click handlers on indicators
-    indicators.forEach(function (indicator, idx) {
-      indicator.addEventListener("click", function () {
-        goToSlide(idx);
-      });
+    // Click handler on carousel to advance
+    carouselTrack.addEventListener("click", function () {
+      advanceToNextSlide();
     });
 
-    // Keyboard navigation
+    // Optional: Add cursor hint
+    carouselTrack.style.cursor = "pointer";
+    
+    // Optional: Keyboard support (right arrow to advance)
     document.addEventListener("keydown", function (e) {
       if (e.key === "ArrowRight") {
-        nextSlide();
-      } else if (e.key === "ArrowLeft") {
-        prevSlide();
+        advanceToNextSlide();
       }
-    });
-
-    // Touch swipe support
-    var touchStartX = 0;
-    carouselTrack.addEventListener("touchstart", function (e) {
-      touchStartX = e.touches[0].clientX;
-    });
-
-    carouselTrack.addEventListener("touchend", function (e) {
-      var touchEndX = e.changedTouches[0].clientX;
-      var diff = touchStartX - touchEndX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) {
-          nextSlide();
-        } else {
-          prevSlide();
-        }
-      }
-    });
-
-    // Start auto-rotation
-    startAutoRotate();
-
-    // Pause on hover, resume on leave
-    carouselTrack.addEventListener("mouseenter", function () {
-      if (autoRotateTimer) {
-        clearInterval(autoRotateTimer);
-      }
-    });
-
-    carouselTrack.addEventListener("mouseleave", function () {
-      startAutoRotate();
     });
   })();
   document.addEventListener("mousemove", function (e) {
