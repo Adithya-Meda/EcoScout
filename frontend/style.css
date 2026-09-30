@@ -307,6 +307,39 @@ h1 span {
   }
 }
 
+/* ──── CRYSTAL PARTICLE SHATTER (COVERS ENTIRE CARD AREA) ──── */
+.shatter-crystal {
+  position: fixed;
+  pointer-events: none;
+  font-size: 1.2rem;
+  z-index: 100;
+  filter: drop-shadow(0 0 4px rgba(34,197,94,0.6));
+}
+
+.shatter-crystal::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(circle, rgba(34,197,94,0.3), transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@keyframes shatterDrizzle {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotateZ(0deg) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(40px) translateX(var(--drift)) rotateZ(180deg) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(600px) translateX(var(--drift)) rotateZ(360deg) scale(0);
+  }
+}
+
 /* Shared Hero Card Styles ────────────────────────────────────── */
 .hero-card {
   position: relative;

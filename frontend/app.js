@@ -327,7 +327,7 @@
     draw();
   })();
 
-  // ── Hero Card Carousel: Crystal Drizzle Effect ────────────────
+  // ── Hero Card Carousel: Card Shatters to Crystals, Drizzles Down ───
   (function initCarousel() {
     var heroCard = document.querySelector(".hero-card");
     if (!heroCard) return;
@@ -343,29 +343,34 @@
     var currentIndex = 0;
     var isAnimating = false;
 
-    function createCrystalParticles() {
+    function createShatteringCrystals() {
       var rect = heroCard.getBoundingClientRect();
-      var particleCount = 12;
+      var particleCount = 40; // Dense coverage of card area
+      var cardWidth = rect.width;
+      var cardHeight = rect.height;
 
       for (var i = 0; i < particleCount; i++) {
         var particle = document.createElement("div");
-        particle.className = "crystal-particle particle-drizzle";
+        particle.className = "shatter-crystal";
         
-        var randomX = Math.random() * rect.width - rect.width / 2;
-        var randomDelay = Math.random() * 200;
-        var randomDrift = (Math.random() - 0.5) * 150;
+        // Position particle within card bounds
+        var randomX = Math.random() * cardWidth;
+        var randomY = Math.random() * cardHeight;
+        var randomDelay = Math.random() * 150; // Staggered start
+        var randomRotation = Math.random() * 360;
         
-        particle.textContent = ["✨", "💎", "🔷", "🔹"][Math.floor(Math.random() * 4)];
-        particle.style.left = (rect.left + rect.width / 2 + randomX) + "px";
-        particle.style.top = rect.top + "px";
-        particle.style.setProperty("--drift", randomDrift + "px");
-        particle.style.animation = `particleDrizzle 1.2s ease-in ${randomDelay}ms forwards`;
+        particle.textContent = "✨";
+        particle.style.left = (rect.left + randomX) + "px";
+        particle.style.top = (rect.top + randomY) + "px";
+        particle.style.setProperty("--rotation", randomRotation + "deg");
+        particle.style.setProperty("--drift", (Math.random() - 0.5) * 200 + "px");
+        particle.style.animation = `shatterDrizzle 1.4s ease-in ${randomDelay}ms forwards`;
         
         document.body.appendChild(particle);
 
         setTimeout(function(p) {
           p.remove();
-        }, 1200 + randomDelay, particle);
+        }, 1400 + randomDelay, particle);
       }
     }
 
@@ -386,8 +391,8 @@
       if (isAnimating) return;
       isAnimating = true;
 
-      // Create drizzling crystals
-      createCrystalParticles();
+      // Create shattering crystal overlay covering entire card
+      createShatteringCrystals();
 
       // Shatter the card
       heroCard.classList.add("is-shattering");
