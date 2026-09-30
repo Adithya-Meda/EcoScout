@@ -1055,6 +1055,18 @@ h1 span {
   100% { top: 92%; opacity: 0.4; }
 }
 
+/* ─── HUD Tag Pulse Animation ────────────────────────────────── */
+@keyframes hudPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(34,197,94,0.3), inset 0 0 8px rgba(34,197,94,0.1);
+    text-shadow: 0 0 4px rgba(34,197,94,0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(34,197,94,0.5), inset 0 0 12px rgba(34,197,94,0.2);
+    text-shadow: 0 0 8px rgba(34,197,94,0.8);
+  }
+}
+
 /* ─── Cursor Spotlight Glow on Cards ─────────────────────────── */
 .glass-card, .material-card, .coverage-box {
   background-image: radial-gradient(
@@ -1161,6 +1173,9 @@ h1 span {
   background: rgba(0,0,0,0.65); padding: 0.2rem 0.5rem;
   border-radius: 4px; letter-spacing: 0.06em;
   backdrop-filter: blur(4px);
+  border: 1px solid rgba(34,197,94,0.4);
+  box-shadow: 0 0 12px rgba(34,197,94,0.3), inset 0 0 8px rgba(34,197,94,0.1);
+  animation: hudPulse 1.5s ease-in-out infinite;
 }
 
 /* ─── Copy Button ────────────────────────────────────────────── */
