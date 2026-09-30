@@ -287,17 +287,32 @@ function normalizeAdvice(parsed, labels, city) {
       ? parsed.isRecyclable
       : recyclability !== "not_recyclable";
 
+  // CONSISTENCY CHECK: Ensure recyclability matches advice intent
+  const advice = typeof parsed.advice === "string" && parsed.advice.trim()
+    ? parsed.advice.trim().slice(0, 2000)
+    : `Check local recycling rules in ${city} for ${top}.`;
+  
+  // Validate consistency: if advice says "don't recycle" but recyclability says "recyclable" → fix it
+  const adviceLower = advice.toLowerCase();
+  const saysNotRecyclable = /not recyclable|don't put|do not put|shouldn't.*recycle|general waste|landfill|special.*disposal|hazardous.*collection/i.test(adviceLower);
+  const saysRecyclable = /recycl|blue bin|green bin|dry waste|composted?|reusable|take.*back|scrap.*collection/i.test(adviceLower);
+
+  // If advice contradicts classification, prioritize advice intent
+  let finalRecyclability = recyclability;
+  if (saysNotRecyclable && recyclability === "recyclable") {
+    finalRecyclability = "not_recyclable";
+  } else if (saysRecyclable && recyclability === "not_recyclable" && !adviceLower.includes("hazardous")) {
+    finalRecyclability = "recyclable";
+  }
+
   return {
     itemName:
       typeof parsed.itemName === "string" && parsed.itemName.trim()
         ? parsed.itemName.trim().slice(0, 80)
         : top,
-    isRecyclable,
-    recyclability,
-    advice:
-      typeof parsed.advice === "string" && parsed.advice.trim()
-        ? parsed.advice.trim().slice(0, 2000)
-        : `Check local recycling rules in ${city} for ${top}.`,
+    isRecyclable: finalRecyclability !== "not_recyclable",
+    recyclability: finalRecyclability,
+    advice,
   };
 }
 
