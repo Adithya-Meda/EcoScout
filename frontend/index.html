@@ -100,6 +100,9 @@
 
               <div id="preview-wrap" class="preview-wrap hidden">
                 <img id="preview" alt="Selected waste item preview" />
+                <div id="preview-label" class="preview-label hidden">
+                  <span id="preview-item-name" class="preview-item-name"></span>
+                </div>
                 <div class="hud-overlay">
                   <div class="hud-corner top-left"></div>
                   <div class="hud-corner top-right"></div>
@@ -149,6 +152,26 @@
             </div>
 
             <div id="form-error" class="banner banner-error hidden" role="alert"></div>
+
+            <!-- Image Analysis Tips -->
+            <div class="image-tips">
+              <div class="tips-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span>Tips for better image analysis</span>
+              </div>
+              <ul class="tips-list">
+                <li><strong>Clear lighting</strong> — Use natural light or bright indoor lighting</li>
+                <li><strong>Plain background</strong> — Avoid cluttered backgrounds for clarity</li>
+                <li><strong>Single item</strong> — Focus on one item per photo</li>
+                <li><strong>Straight angle</strong> — Photograph the item head-on</li>
+                <li><strong>Close-up shot</strong> — Item should fill most of the frame</li>
+                <li><strong>Show the label</strong> — If visible, include any recycling symbols or labels</li>
+              </ul>
+            </div>
           </form>
 
           <div id="loading" class="loading hidden" aria-live="polite">

@@ -1199,6 +1199,21 @@ h1 span {
 /* ─── HUD Vision Targeting Overlay ───────────────────────────── */
 .preview-wrap { position: relative; overflow: hidden; }
 
+.preview-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+  padding: 1.5rem 1rem 1rem;
+  display: flex; align-items: flex-end;
+}
+
+.preview-label.hidden { display: none; }
+
+.preview-item-name {
+  font-weight: 700; font-size: 1.1rem;
+  color: #4ade80;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
 .hud-overlay {
   position: absolute; inset: 12px;
   pointer-events: none; border: 1px dashed rgba(34,197,94,0.3);
@@ -1223,6 +1238,52 @@ h1 span {
   border: 1px solid rgba(34,197,94,0.4);
   box-shadow: 0 0 12px rgba(34,197,94,0.3), inset 0 0 8px rgba(34,197,94,0.1);
   animation: hudPulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Image Analysis Tips ──────────────────────────────────── */
+.image-tips {
+  margin-top: 1.75rem;
+  padding: 1.25rem;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: var(--radius-lg);
+  display: grid; gap: 0.85rem;
+}
+
+.tips-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 700; font-size: 0.95rem;
+  color: var(--green);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.tips-header svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(34,197,94,0.4));
+}
+
+.tips-list {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 0.6rem;
+}
+
+.tips-list li {
+  font-size: 0.88rem; color: var(--text-2);
+  line-height: 1.5;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.tips-list li::before {
+  content: '✓';
+  position: absolute; left: 0;
+  font-weight: 800; color: var(--green);
+  font-size: 0.95rem;
+}
+
+.tips-list strong {
+  color: var(--text-1); font-weight: 600;
 }
 
 /* ─── Copy Button ────────────────────────────────────────────── */

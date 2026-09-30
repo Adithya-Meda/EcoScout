@@ -30,6 +30,8 @@
 
   var selectedFile = null;
   var previewUrl = null;
+  var previewLabel = document.getElementById("preview-label");
+  var previewItemName = document.getElementById("preview-item-name");
 
   function config() {
     return window.ECOScoutConfig || {};
@@ -215,6 +217,12 @@
 
     badgeEl.textContent = labelText;
     badgeEl.className = "badge " + bClass;
+
+    // Show item name on preview image
+    if (previewLabel && previewItemName && data.itemName) {
+      previewItemName.textContent = data.itemName;
+      previewLabel.classList.remove("hidden");
+    }
 
     // Apply danger/success/warning class to entire results card
     var resultsCard = document.querySelector(".glass-card");
