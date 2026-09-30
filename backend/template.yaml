@@ -5,8 +5,8 @@ Description: EcoScout backend — API Gateway REST, Lambda, S3, Rekognition, Gem
 Parameters:
   AllowedOrigin:
     Type: String
-    Default: http://localhost:5500
-    Description: Exact browser origin allowed by CORS (Amplify URL after deploy). Do not use *.
+    Default: https://main.d6skx41fd3ndo.amplifyapp.com
+    Description: Exact browser origin allowed by CORS (Amplify frontend URL). Do not use *.
     AllowedPattern: ^https?://[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+$
     ConstraintDescription: Must be a full http(s) origin with no wildcard.
 
@@ -89,8 +89,8 @@ Resources:
       MethodSettings:
         - ResourcePath: "/*"
           HttpMethod: "*"
-          ThrottlingRateLimit: 10
-          ThrottlingBurstLimit: 20
+          ThrottlingRateLimit: 2
+          ThrottlingBurstLimit: 5
           MetricsEnabled: true
       Cors:
         AllowMethods: "'OPTIONS,POST'"
