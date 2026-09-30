@@ -345,9 +345,10 @@
 
     function createShatteringCrystals() {
       var rect = heroCard.getBoundingClientRect();
-      var particleCount = 40; // Dense coverage of card area
+      var particleCount = 60; // More particles for better coverage
       var cardWidth = rect.width;
       var cardHeight = rect.height;
+      var animationDuration = 2.0; // Longer duration for smooth motion
 
       for (var i = 0; i < particleCount; i++) {
         var particle = document.createElement("div");
@@ -356,21 +357,22 @@
         // Position particle within card bounds
         var randomX = Math.random() * cardWidth;
         var randomY = Math.random() * cardHeight;
-        var randomDelay = Math.random() * 150; // Staggered start
+        var randomDelay = Math.random() * 80; // Shorter stagger for cohesive effect
         var randomRotation = Math.random() * 360;
+        var randomSize = 0.4 + Math.random() * 0.6; // 0.4 - 1.0 scale
         
-        particle.textContent = "✨";
         particle.style.left = (rect.left + randomX) + "px";
         particle.style.top = (rect.top + randomY) + "px";
         particle.style.setProperty("--rotation", randomRotation + "deg");
-        particle.style.setProperty("--drift", (Math.random() - 0.5) * 200 + "px");
-        particle.style.animation = `shatterDrizzle 1.4s ease-in ${randomDelay}ms forwards`;
+        particle.style.setProperty("--drift", (Math.random() - 0.5) * 150 + "px");
+        particle.style.setProperty("--size", randomSize);
+        particle.style.animation = `shatterDrizzle ${animationDuration}s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${randomDelay}ms forwards`;
         
         document.body.appendChild(particle);
 
         setTimeout(function(p) {
           p.remove();
-        }, 1400 + randomDelay, particle);
+        }, (animationDuration * 1000) + randomDelay, particle);
       }
     }
 
@@ -397,7 +399,7 @@
       // Shatter the card
       heroCard.classList.add("is-shattering");
 
-      // After shatter completes, update content and fade in
+      // Start content update and fade-in transition at 800ms (crystals still falling)
       setTimeout(function() {
         currentIndex = (currentIndex + 1) % cardData.length;
         updateCardContent(currentIndex);
@@ -408,8 +410,8 @@
         setTimeout(function() {
           heroCard.classList.remove("is-entering");
           isAnimating = false;
-        }, 800);
-      }, 700); // Timing for shatter animation
+        }, 600); // Smooth 600ms fade-in while crystals finish falling
+      }, 800); // Start transition at 800ms (crystals still have 1.2s left)
     }
 
     // Click handler
