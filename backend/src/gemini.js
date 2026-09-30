@@ -10,7 +10,7 @@ const secretsManager = new SecretsManagerClient({});
 let geminiClient;
 
 const SYSTEM_PROMPT = `You are EcoScout, a global recycling and waste-disposal advisor.
-You receive computer-vision labels for a photo of a waste item, plus the user's city and postal/PIN code.
+You receive computer-vision labels for a photo of a waste item, plus the user's city.
 You support users anywhere in the world — US, India, UK, Canada, Australia, and beyond.
 Use your knowledge of local municipal solid waste rules for that specific city and country.
 Treat the vision labels as the only evidence about the item's material. Never infer plastic, glass, or metal from a generic label such as bottle, flask, thermos, tumbler, or shaker. If the labels do not establish the material, call it uncertain and give cautious, conditional guidance.
@@ -29,7 +29,7 @@ Respond with ONLY a single JSON object (no markdown, no commentary) using these 
 Be honest when labels are ambiguous. Never claim hazardous waste is safe for regular bins.
 If you are unsure about local rules for a given city, say so clearly and give the safest conservative advice.`;
 
-function buildUserPrompt({ labels, city, postalCode }) {
+function buildUserPrompt({ labels, city }) {
   const labelLines = labels
     .map(
       (label) =>
@@ -40,7 +40,6 @@ function buildUserPrompt({ labels, city, postalCode }) {
     .join("\n");
 
   return `City: ${city}
-Postal / PIN code: ${postalCode}
 
 Detected labels from the photo (highest confidence first):
 ${labelLines || "- (none)"}
@@ -68,7 +67,7 @@ function extractJsonObject(text) {
   }
 }
 
-function normalizeAdvice(parsed, labels, city, postalCode) {
+function normalizeAdvice(parsed, labels, city) {
   const top = labels[0]?.name || "unknown item";
   const labelText = labels
     .flatMap((label) => [label.name, ...(label.parents || [])])
@@ -86,7 +85,7 @@ function normalizeAdvice(parsed, labels, city, postalCode) {
       itemName: "Reusable bottle (material uncertain)",
       isRecyclable: false,
       recyclability: "conditionally_recyclable",
-      advice: `The detected labels identify a bottle, but do not establish its material. Do not put it in plastic recycling based on this result. If it is insulated stainless steel, check ${city} (${postalCode}) for a scrap-metal, special-collection, reuse, or take-back option. If it is plastic, recycle it only if your local program accepts that resin. Empty it, rinse it, and separate the cap if your local rules require it.`,
+      advice: `The detected labels identify a bottle, but do not establish its material. Do not put it in plastic recycling based on this result. If it is insulated stainless steel, check your municipal guidance in ${city} for a scrap-metal, special-collection, reuse, or take-back option. If it is plastic, recycle it only if your local program accepts that resin. Empty it, rinse it, and separate the cap if your local rules require it.`,
     };
   }
 
@@ -95,7 +94,7 @@ function normalizeAdvice(parsed, labels, city, postalCode) {
       itemName: top,
       isRecyclable: false,
       recyclability: "conditionally_recyclable",
-      advice: `We detected ${top} in ${city} (${postalCode}). Local recycling rules vary. Rinse the item if it held food or liquid, check your municipal recycling guide, and keep plastic bags, food residue, and electronics out of regular recycling bins.`,
+      advice: `We detected ${top} in ${city}. Local recycling rules vary. Rinse the item if it held food or liquid, check your municipal recycling guide, and keep plastic bags, food residue, and electronics out of regular recycling bins.`,
     };
   }
 
@@ -126,7 +125,7 @@ function normalizeAdvice(parsed, labels, city, postalCode) {
     advice:
       typeof parsed.advice === "string" && parsed.advice.trim()
         ? parsed.advice.trim().slice(0, 2000)
-        : `Check local recycling rules in ${city} (${postalCode}) for ${top}.`,
+        : `Check local recycling rules in ${city} for ${top}.`,
   };
 }
 
@@ -160,11 +159,11 @@ async function getGeminiClient() {
   return geminiClient;
 }
 
-async function getRecyclingAdvice({ labels, city, postalCode }) {
+async function getRecyclingAdvice({ labels, city }) {
   const client = await getGeminiClient();
   const response = await client.models.generateContent({
     model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
-    contents: buildUserPrompt({ labels, city, postalCode }),
+    contents: buildUserPrompt({ labels, city }),
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
@@ -172,7 +171,7 @@ async function getRecyclingAdvice({ labels, city, postalCode }) {
     },
   });
 
-  return normalizeAdvice(extractJsonObject(response.text), labels, city, postalCode);
+  return normalizeAdvice(extractJsonObject(response.text), labels, city);
 }
 
 module.exports = { getRecyclingAdvice };

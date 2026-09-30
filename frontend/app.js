@@ -10,7 +10,6 @@
 
   var form = document.getElementById("scan-form");
   var cityInput = document.getElementById("city");
-  var postalInput = document.getElementById("postal");
   var fileInput = document.getElementById("file-input");
   var cameraInput = document.getElementById("camera-input");
   var dropZone = document.getElementById("drop-zone");
@@ -294,7 +293,6 @@
     chooseFile.disabled = busy;
     openCamera.disabled = busy;
     cityInput.disabled = busy;
-    postalInput.disabled = busy;
   }
 
   // ── 1. Cyber-Eco Canvas Particle Background ───────────────
@@ -396,11 +394,9 @@
   document.querySelectorAll(".chip-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var city = btn.getAttribute("data-city");
-      var postal = btn.getAttribute("data-postal");
       var sample = btn.getAttribute("data-sample");
 
       cityInput.value = city;
-      postalInput.value = postal;
 
       var sampleMap = {
         bottle: { name: "plastic_bottle", text: "PET Water Bottle", bg: "#166534", emoji: "🧴" },
@@ -450,14 +446,9 @@
     }
 
     var city = cityInput.value.trim();
-    var postalCode = postalInput.value.trim();
 
     if (!/^[A-Za-z][A-Za-z\s.'-]{0,79}$/.test(city)) {
       showError("Enter a valid city name.");
-      return;
-    }
-    if (!/^[A-Za-z0-9][A-Za-z0-9 -]{1,9}$/.test(postalCode)) {
-      showError("Enter a valid postal or PIN code (e.g. 110001 for Delhi, 78701 for Austin).");
       return;
     }
     if (!selectedFile) {
@@ -480,7 +471,6 @@
               imageBase64: imageBase64,
               mimeType: mimeFor(normalizedFile),
               city: city,
-              postalCode: postalCode,
             }),
           });
         });

@@ -11,7 +11,7 @@ EcoScout is designed with a **Privacy-First** architecture. We believe that help
 When you use EcoScout, the application processes only the minimal data required to determine local recycling guidelines:
 
 - **Uploaded Waste Photo**: Transmitted securely to AWS Rekognition solely to identify the object (e.g. plastic bottle, aluminum can).
-- **Detected Labels, City & Postal/PIN Code**: Sent to the Google Gemini API to generate location-specific disposal guidance. The uploaded photo itself is not sent to Gemini.
+- **Detected Labels & City**: Sent to the Google Gemini API to generate city-based disposal guidance. The uploaded photo itself is not sent to Gemini.
 
 ---
 
@@ -19,7 +19,7 @@ When you use EcoScout, the application processes only the minimal data required 
 
 - **No User Accounts or Login**: You can use EcoScout without creating an account or logging in.
 - **No EcoScout Database**: We do not maintain an EcoScout user database or profile history.
-- **No Precise GPS Location**: We do not request or track device GPS coordinates.
+- **No Precise Location**: We do not request or track device GPS coordinates. The city you enter is sent to Gemini with detected item labels.
 - **No Third-Party Advertising Trackers**: No tracking cookies or advertising pixels are used.
 
 ---
@@ -36,10 +36,10 @@ When you use EcoScout, the application processes only the minimal data required 
 
 EcoScout uses AWS infrastructure and the Google Gemini API:
 - **AWS Rekognition**: Image label detection.
-- **Google Gemini API**: Uses detected labels and the supplied city/postal code to generate advice.
+- **Google Gemini API**: Uses detected labels and the supplied city to generate advice.
 - **AWS API Gateway & Lambda**: Serverless backend execution.
 
-The Gemini request contains detected labels and city/postal code, but not the uploaded image. Gemini API data handling differs by billing tier: on Google's unpaid tier, submitted prompts and responses may be used to improve Google services and may be reviewed by humans. Review [Google's Gemini API terms](https://ai.google.dev/gemini-api/terms) before using real user data. Requests are sent from the backend over HTTPS; the API key is stored in AWS Secrets Manager and is never sent to the browser.
+The Gemini request contains detected labels and city, but not the uploaded image. Gemini API data handling differs by billing tier: on Google's unpaid tier, submitted prompts and responses may be used to improve Google services and may be reviewed by humans. Review [Google's Gemini API terms](https://ai.google.dev/gemini-api/terms) before using real user data. Requests are sent from the backend over HTTPS; the API key is stored in AWS Secrets Manager and is never sent to the browser.
 
 ---
 

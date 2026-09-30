@@ -88,7 +88,6 @@ exports.handler = async function handler(event, context) {
         ServerSideEncryption: "AES256",
         Metadata: {
           city: payload.city.slice(0, 80),
-          postal: payload.postalCode,
         },
       })
     );
@@ -106,7 +105,6 @@ exports.handler = async function handler(event, context) {
     const advice = await getRecyclingAdvice({
       labels,
       city: payload.city,
-      postalCode: payload.postalCode,
     });
 
     return jsonResponse(200, {
@@ -118,7 +116,6 @@ exports.handler = async function handler(event, context) {
       labels,
       location: {
         city: payload.city,
-        postalCode: payload.postalCode,
       },
     });
   } catch (err) {

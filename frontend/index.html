@@ -23,12 +23,8 @@
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="logo" href="#top">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          style="display:inline;vertical-align:middle;margin-right:6px;filter:none;-webkit-text-fill-color:initial"
-          aria-hidden="true">
-          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
-          <path d="M8 12s1-3 4-3 4 3 4 3-1 3-4 3-4-3-4-3z" />
-        </svg>EcoScout
+        <img class="logo-mark" src="./favicon.svg" width="24" height="24" alt="" aria-hidden="true" />
+        <span>EcoScout</span>
       </a>
       <nav class="nav" aria-label="Primary">
         <a href="#upload">Scan</a>
@@ -94,12 +90,7 @@
               <label class="field">
                 <span>City</span>
                 <input id="city" name="city" type="text" autocomplete="address-level2" maxlength="80" required
-                  placeholder="e.g. Austin" />
-              </label>
-              <label class="field">
-                <span>PIN / ZIP code</span>
-                <input id="postal" name="postal" type="text" inputmode="text" autocomplete="postal-code" maxlength="10"
-                  required placeholder="e.g. 560001 or 78701" />
+                  placeholder="e.g. Austin or Bengaluru" />
               </label>
             </div>
 
@@ -164,10 +155,10 @@
             <div class="quick-try-bar">
               <span class="quick-try-title">⚡ Quick Demo Samples:</span>
               <div class="quick-chips">
-                <button type="button" class="chip-btn" data-city="Bengaluru" data-postal="560001" data-sample="bottle">🧴 Plastic Bottle</button>
-                <button type="button" class="chip-btn" data-city="Austin" data-postal="78701" data-sample="can">🥫 Aluminum Can</button>
-                <button type="button" class="chip-btn" data-city="Mumbai" data-postal="400001" data-sample="box">📦 Cardboard Box</button>
-                <button type="button" class="chip-btn" data-city="San Francisco" data-postal="94103" data-sample="glass">🫙 Glass Jar</button>
+                <button type="button" class="chip-btn" data-city="Bengaluru" data-sample="bottle">🧴 Plastic Bottle</button>
+                <button type="button" class="chip-btn" data-city="Austin" data-sample="can">🥫 Aluminum Can</button>
+                <button type="button" class="chip-btn" data-city="Mumbai" data-sample="box">📦 Cardboard Box</button>
+                <button type="button" class="chip-btn" data-city="San Francisco" data-sample="glass">🫙 Glass Jar</button>
               </div>
             </div>
 
@@ -321,9 +312,9 @@
               <p>Follows local municipal streams (single-stream recycling, compost, landfill, and hazardous guidelines).</p>
             </div>
           </div>
-          <div class="pincode-ease-note">
-            <div class="ease-badge">⚡ Hyper-Local PIN / ZIP Rules</div>
-            <p><strong>How location rules work:</strong> Simply enter your city and PIN or ZIP code (e.g. <code>560001</code> or <code>94103</code>). EcoScout automatically customizes the AI advice to match the specific municipal waste policies where you live — with no GPS tracking or login required!</p>
+          <div class="city-guidance-note">
+            <div class="ease-badge">⚡ City-Based Guidance</div>
+            <p><strong>How location guidance works:</strong> Enter your city for general local recycling advice. Rules can vary within a city, so check your municipal authority for item-specific requirements. EcoScout does not request GPS access or require a login.</p>
           </div>
         </div>
 
@@ -346,14 +337,14 @@
           <h2>How it works</h2>
           <ol>
             <li><strong>Take a photo</strong> of any item you are unsure about — a bottle, a bag, a box, or anything else.</li>
-            <li><strong>Enter your city and PIN/ZIP code</strong> so we can look up the rules that apply specifically to where you live.</li>
+            <li><strong>Enter your city</strong> for general local recycling guidance.</li>
             <li><strong>Get instant advice</strong> — we tell you whether to recycle, compost, or bin it, and exactly how to prepare it.</li>
           </ol>
         </section>
         <section>
           <h2>Your privacy</h2>
           <p>We take your privacy seriously. Photos you upload are used solely to identify the item in the image — they are never stored permanently, never shared with third parties, and automatically deleted the moment your result is ready.</p>
-          <p style="margin-top:0.75rem">We do not create user accounts, we do not require login, we do not track your GPS location beyond the city and PIN/ZIP code you provide, and we do not use your data for advertising.</p>
+          <p style="margin-top:0.75rem">We do not create user accounts, require login, track GPS location, or use your data for advertising. Your city is sent with detected item labels to generate general local guidance.</p>
         </section>
       </div>
 
