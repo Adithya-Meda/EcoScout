@@ -198,6 +198,13 @@
     }
   }
 
+  function triggerDangerShake(targetEl) {
+    targetEl.classList.add("shake-danger");
+    setTimeout(function() {
+      targetEl.classList.remove("shake-danger");
+    }, 800);
+  }
+
   function renderResults(data) {
     itemNameEl.textContent = data.itemName || "Unknown item";
     var labelText = badgeLabel(data.recyclability, data.isRecyclable);
@@ -208,6 +215,8 @@
 
     if (data.recyclability === "recyclable" || (data.isRecyclable && data.recyclability !== "not_recyclable")) {
       triggerSparkles(badgeEl);
+    } else if (data.recyclability === "not_recyclable") {
+      triggerDangerShake(badgeEl);
     }
 
     // Typewriter text streaming for advice
