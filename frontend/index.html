@@ -65,12 +65,55 @@
           </div>
         </div>
 
-        <div class="hero-card" aria-hidden="true">
-          <div class="hero-card-icon">♻️</div>
-          <p class="hero-card-label">Aluminum can</p>
-          <p class="hero-card-status">✓ Recyclable — rinse and remove cap</p>
-          <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Blue recycling
-            bin</p>
+        <div class="hero-carousel" aria-hidden="true">
+          <div class="carousel-track">
+            <!-- Aluminum Can -->
+            <div class="hero-card carousel-card" data-card-id="0">
+              <div class="hero-card-icon">🥫</div>
+              <p class="hero-card-label">Aluminum can</p>
+              <p class="hero-card-status">✓ Recyclable — rinse and remove cap</p>
+              <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Blue recycling bin</p>
+            </div>
+            
+            <!-- Plastic Bottle -->
+            <div class="hero-card carousel-card" data-card-id="1">
+              <div class="hero-card-icon">🧴</div>
+              <p class="hero-card-label">Plastic bottle</p>
+              <p class="hero-card-status">✓ Recyclable — rinse and cap off</p>
+              <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Clear recycling bin</p>
+            </div>
+            
+            <!-- Glass Jar -->
+            <div class="hero-card carousel-card" data-card-id="2">
+              <div class="hero-card-icon">🍾</div>
+              <p class="hero-card-label">Glass jar</p>
+              <p class="hero-card-status">✓ Recyclable — rinse thoroughly</p>
+              <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Glass recycling bin</p>
+            </div>
+            
+            <!-- Cardboard Box -->
+            <div class="hero-card carousel-card" data-card-id="3">
+              <div class="hero-card-icon">📦</div>
+              <p class="hero-card-label">Cardboard box</p>
+              <p class="hero-card-status">✓ Recyclable — flatten before disposal</p>
+              <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: Brown recycling bin</p>
+            </div>
+            
+            <!-- Paper Cup (Non-recyclable) -->
+            <div class="hero-card carousel-card" data-card-id="4">
+              <div class="hero-card-icon">☕</div>
+              <p class="hero-card-label">Paper coffee cup</p>
+              <p class="hero-card-status">⚠ Not recyclable — plastic lining</p>
+              <p class="hero-card-status" style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">Drop off: General trash bin</p>
+            </div>
+          </div>
+          <div class="carousel-nav">
+            <span class="carousel-indicator" data-slide="0"></span>
+            <span class="carousel-indicator" data-slide="1"></span>
+            <span class="carousel-indicator" data-slide="2"></span>
+            <span class="carousel-indicator" data-slide="3"></span>
+            <span class="carousel-indicator" data-slide="4"></span>
+          </div>
         </div>
       </div>
     </section>

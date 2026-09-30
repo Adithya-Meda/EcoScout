@@ -327,7 +327,137 @@
     draw();
   })();
 
-  // ── 2. Interactive Cursor Spotlight Effect ────────────────
+  // ── Hero Card Carousel System ────────────────────────────────
+  (function initCarousel() {
+    var carouselTrack = document.querySelector(".carousel-track");
+    var indicators = document.querySelectorAll(".carousel-indicator");
+    var cards = document.querySelectorAll(".carousel-card");
+    
+    if (!carouselTrack || cards.length === 0) return;
+
+    var currentSlide = 0;
+    var isTransitioning = false;
+    var autoRotateTimer = null;
+    var AUTO_ROTATE_INTERVAL = 6000; // 6 seconds per slide
+
+    function updateSlide(newSlide) {
+      if (isTransitioning) return;
+      
+      isTransitioning = true;
+      var totalSlides = cards.length;
+      var previousSlide = currentSlide;
+      currentSlide = (newSlide + totalSlides) % totalSlides;
+
+      // Remove all state classes
+      cards.forEach(function (card) {
+        card.classList.remove("is-active", "is-exiting", "is-entering", "is-waiting");
+      });
+      indicators.forEach(function (indicator) {
+        indicator.classList.remove("is-active");
+      });
+
+      // Exit previous card
+      cards[previousSlide].classList.add("is-exiting");
+
+      // Mark all others as waiting
+      for (var i = 0; i < totalSlides; i++) {
+        if (i !== previousSlide && i !== currentSlide) {
+          cards[i].classList.add("is-waiting");
+        }
+      }
+
+      // Activate new card after exit animation starts
+      setTimeout(function () {
+        cards[currentSlide].classList.add("is-entering", "is-active");
+        indicators[currentSlide].classList.add("is-active");
+        isTransitioning = false;
+      }, 50);
+
+      // Update indicator immediately
+      indicators[currentSlide].classList.add("is-active");
+    }
+
+    function nextSlide() {
+      updateSlide(currentSlide + 1);
+      resetAutoRotate();
+    }
+
+    function prevSlide() {
+      updateSlide(currentSlide - 1);
+      resetAutoRotate();
+    }
+
+    function goToSlide(slideIndex) {
+      updateSlide(slideIndex);
+      resetAutoRotate();
+    }
+
+    function resetAutoRotate() {
+      if (autoRotateTimer) {
+        clearInterval(autoRotateTimer);
+      }
+      startAutoRotate();
+    }
+
+    function startAutoRotate() {
+      autoRotateTimer = setInterval(nextSlide, AUTO_ROTATE_INTERVAL);
+    }
+
+    // Initialize first slide
+    cards[0].classList.add("is-active");
+    indicators[0].classList.add("is-active");
+    for (var i = 1; i < cards.length; i++) {
+      cards[i].classList.add("is-waiting");
+    }
+
+    // Click handlers on indicators
+    indicators.forEach(function (indicator, idx) {
+      indicator.addEventListener("click", function () {
+        goToSlide(idx);
+      });
+    });
+
+    // Keyboard navigation
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") {
+        nextSlide();
+      } else if (e.key === "ArrowLeft") {
+        prevSlide();
+      }
+    });
+
+    // Touch swipe support
+    var touchStartX = 0;
+    carouselTrack.addEventListener("touchstart", function (e) {
+      touchStartX = e.touches[0].clientX;
+    });
+
+    carouselTrack.addEventListener("touchend", function (e) {
+      var touchEndX = e.changedTouches[0].clientX;
+      var diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
+      }
+    });
+
+    // Start auto-rotation
+    startAutoRotate();
+
+    // Pause on hover, resume on leave
+    carouselTrack.addEventListener("mouseenter", function () {
+      if (autoRotateTimer) {
+        clearInterval(autoRotateTimer);
+      }
+    });
+
+    carouselTrack.addEventListener("mouseleave", function () {
+      startAutoRotate();
+    });
+  })();
   document.addEventListener("mousemove", function (e) {
     document.querySelectorAll(".glass-card, .material-card, .coverage-box").forEach(function (card) {
       var rect = card.getBoundingClientRect();
