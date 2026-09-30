@@ -367,7 +367,7 @@
 
   // ── 2. Interactive Cursor Spotlight Effect ────────────────
   document.addEventListener("mousemove", function (e) {
-    document.querySelectorAll(".glass-card, .upload-card, .material-card, .coverage-box").forEach(function (card) {
+    document.querySelectorAll(".glass-card, .material-card, .coverage-box").forEach(function (card) {
       var rect = card.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
@@ -377,7 +377,7 @@
   });
 
   // ── 3. 3D Card Tilt Effect on Hover ───────────────────────
-  document.querySelectorAll(".glass-card, .upload-card, .material-card").forEach(function (card) {
+  document.querySelectorAll(".glass-card, .material-card").forEach(function (card) {
     card.addEventListener("mousemove", function (e) {
       var rect = card.getBoundingClientRect();
       var x = e.clientX - rect.left - rect.width / 2;

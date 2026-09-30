@@ -5,10 +5,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description"
-    content="EcoScout identifies waste from a photo and gives hyper-local recycling advice powered by AWS Rekognition and Google Gemini." />
+    content="EcoScout identifies waste from a photo and gives practical, location-aware recycling guidance." />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://*.execute-api.us-east-2.amazonaws.com https://*.execute-api.us-west-2.amazonaws.com https://*.execute-api.eu-west-1.amazonaws.com https://*.execute-api.ap-south-1.amazonaws.com https://*.execute-api.ap-southeast-1.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" />
   <title>EcoScout — Scan trash. Recycle right.</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -116,7 +117,7 @@
                   <div class="hud-corner top-right"></div>
                   <div class="hud-corner bottom-left"></div>
                   <div class="hud-corner bottom-right"></div>
-                  <div class="hud-tag">🎯 AWS VISION TARGETING ACTIVE</div>
+                  <div class="hud-tag">🎯 IMAGE ANALYSIS ACTIVE</div>
                 </div>
               </div>
 
@@ -176,7 +177,7 @@
           <div id="loading" class="loading hidden" aria-live="polite">
             <div class="spinner" aria-hidden="true"></div>
             <div>
-              <p id="loading-step" class="loading-step">Uploading photo & running AWS Rekognition…</p>
+              <p id="loading-step" class="loading-step">Analyzing your photo…</p>
               <span id="loading-substep" class="loading-substep">Matching local municipal SWM rules</span>
             </div>
           </div>
@@ -186,7 +187,7 @@
               <div class="results-top">
                 <h2 id="results-title">Scan result</h2>
                 <div class="results-top-right">
-                  <span class="ai-badge">⚡ Google Gemini · AWS Rekognition</span>
+                  <span class="ai-badge">⚡ Smart sorting guidance</span>
                   <button type="button" id="copy-advice-btn" class="copy-btn">📋 Copy Advice</button>
                 </div>
               </div>
