@@ -367,20 +367,50 @@ async function getGeminiClient() {
   return geminiClient;
 }
 
+// Helper to extract bin/method from advice text for classification preservation
+function extractBinFromAdvice(advice) {
+  if (!advice) return "unknown";
+  const advice_lower = advice.toLowerCase();
+  
+  if (/blue bin|recycling bin|dry waste/.test(advice_lower)) return "blue bin / recycling";
+  if (/green bin|compost|organic/.test(advice_lower)) return "green bin / compost";
+  if (/black bin|general waste|landfill/.test(advice_lower)) return "black bin / general waste";
+  if (/e-waste|hazardous|special.*collection/.test(advice_lower)) return "e-waste / hazardous collection";
+  if (/red bin/.test(advice_lower)) return "red bin";
+  
+  return "check local rules";
+}
+
 async function getRecyclingAdvice({ labels, city, userItemName }) {
   const client = await getGeminiClient();
   
-  // Add randomization to prompt to force variation in responses
-  // This ensures same image + city produces different wording each time
-  // Multiple variation instructions increase diversity
+  // First pass: Get deterministic classification with low temperature
+  // This ensures the same item always gets the same recyclability status
+  const userPrompt = buildUserPrompt({ labels, city, userItemName });
+  
+  const classificationResponse = await client.models.generateContent({
+    model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
+    contents: userPrompt,
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      responseMimeType: "application/json",
+      maxOutputTokens: 700,
+      temperature: 0.1, // LOW temperature for consistent classification
+    },
+  });
+
+  const baseClassification = extractJsonObject(classificationResponse.text);
+  
+  // Second pass: Vary the wording only while preserving classification
+  // Add variation instructions to keep the advice fresh without changing the core classification
   const variationInstructions = [
-    "Vary your phrasing and sentence structure in your response.",
-    "Use different vocabulary and explain concepts in a fresh way.",
-    "Rephrase your advice using alternative expressions and synonyms.",
-    "Present the guidance from a different angle with varied wording.",
-    "Restructure your sentences and use different terminology.",
-    "Explain the same guidance in a more conversational tone.",
-    "Provide the advice with a different emphasis or focus.",
+    "Vary your phrasing and sentence structure in your response while maintaining the same classification and advice.",
+    "Use different vocabulary and explain concepts in a fresh way, but do not change the recyclability status or core guidance.",
+    "Rephrase your advice using alternative expressions and synonyms without altering the classification.",
+    "Present the guidance from a different angle with varied wording, keeping the same recyclability determination.",
+    "Restructure your sentences and use different terminology, but preserve the same bin/disposal method.",
+    "Explain the same guidance in a more conversational tone without changing the classification.",
+    "Provide the advice with a different emphasis or focus, but maintain the recyclability status.",
   ];
   
   // Randomly select 2-3 variation hints
@@ -392,21 +422,36 @@ async function getRecyclingAdvice({ labels, city, userItemName }) {
   // Add a unique nonce to break response caching (timestamp + random)
   const nonce = `[Variation_${Date.now()}_${Math.random().toString(36).slice(2, 9)}]`;
   
-  const userPrompt = buildUserPrompt({ labels, city, userItemName });
-  const variatedUserPrompt = `${userPrompt}\n\n${nonce}\n${selectedHints}`;
+  // Preserve base classification in the variation prompt
+  const baseClassificationStr = baseClassification 
+    ? `\nPREVIOUS CLASSIFICATION (preserve these exactly):\nRecyclability: ${baseClassification.recyclability}\nBin/Method: ${extractBinFromAdvice(baseClassification.advice)}`
+    : "";
   
-  const response = await client.models.generateContent({
+  const variatedUserPrompt = `${userPrompt}${baseClassificationStr}\n\n${nonce}\n${selectedHints}`;
+  
+  const variationResponse = await client.models.generateContent({
     model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
     contents: variatedUserPrompt,
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
       maxOutputTokens: 700,
-      temperature: 0.7,
+      temperature: 0.7, // HIGHER temperature for varied wording
     },
   });
 
-  return normalizeAdvice(extractJsonObject(response.text), labels, city);
+  const variatedClassification = extractJsonObject(variationResponse.text);
+  
+  // Ensure the varied response matches base classification
+  const finalResult = normalizeAdvice(variatedClassification, labels, city);
+  
+  // Force consistency: if base classification exists, preserve its recyclability
+  if (baseClassification && baseClassification.recyclability) {
+    finalResult.recyclability = baseClassification.recyclability;
+    finalResult.isRecyclable = baseClassification.isRecyclable !== false;
+  }
+
+  return finalResult;
 }
 
 module.exports = { getRecyclingAdvice };
