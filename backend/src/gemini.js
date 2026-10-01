@@ -361,9 +361,35 @@ async function getGeminiClient() {
 
 async function getRecyclingAdvice({ labels, city, userItemName }) {
   const client = await getGeminiClient();
+  
+  // Add randomization to prompt to force variation in responses
+  // This ensures same image + city produces different wording each time
+  // Multiple variation instructions increase diversity
+  const variationInstructions = [
+    "Vary your phrasing and sentence structure in your response.",
+    "Use different vocabulary and explain concepts in a fresh way.",
+    "Rephrase your advice using alternative expressions and synonyms.",
+    "Present the guidance from a different angle with varied wording.",
+    "Restructure your sentences and use different terminology.",
+    "Explain the same guidance in a more conversational tone.",
+    "Provide the advice with a different emphasis or focus.",
+  ];
+  
+  // Randomly select 2-3 variation hints
+  const selectedHints = variationInstructions
+    .sort(() => Math.random() - 0.5)
+    .slice(0, Math.floor(Math.random() * 2) + 2)
+    .join(" ");
+  
+  // Add a unique nonce to break response caching (timestamp + random)
+  const nonce = `[Variation_${Date.now()}_${Math.random().toString(36).slice(2, 9)}]`;
+  
+  const userPrompt = buildUserPrompt({ labels, city, userItemName });
+  const variatedUserPrompt = `${userPrompt}\n\n${nonce}\n${selectedHints}`;
+  
   const response = await client.models.generateContent({
     model: process.env.GEMINI_MODEL_ID || "gemini-3.5-flash-lite",
-    contents: buildUserPrompt({ labels, city, userItemName }),
+    contents: variatedUserPrompt,
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
