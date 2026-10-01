@@ -148,6 +148,13 @@ RESPONSE LOGIC
 6. WRITE advice for specific city following regional rules
 7. ENSURE consistency: advice must match recyclability classification
 
+USER INPUT PRIORITY:
+If the user provides an item name input (e.g., "plastic mobile stand"), prioritize it over conflicting computer-vision labels. 
+- If user says "mobile stand" but labels say "sink", use "mobile stand" as the definitive item
+- If user describes it as "plastic" but labels suggest metal/glass, trust the user's material description
+- Computer vision can misidentify items, but user input is direct and accurate
+- Always base your recyclability assessment on what the user says, not contradictory labels
+
 RESPONSE VARIATION (IMPORTANT):
 Each time you respond for the same item, vary your wording while maintaining the same core guidance and recommendations. Use different sentence structures, synonyms, and explanations. Examples of variation:
 - Instead of: "Rinse the bottle thoroughly" → "Make sure to rinse it well under running water"
@@ -193,16 +200,17 @@ function buildUserPrompt({ labels, city, userItemName }) {
     )
     .join("\n");
 
+  // Emphasize user input at the top if provided
   const userHintLine = userItemName
-    ? `\nUser's item name input: "${userItemName}"`
+    ? `\n[USER PROVIDED ITEM NAME - PRIMARY SOURCE]: "${userItemName}"\nUse this as the definitive item identification, not the computer vision labels if they conflict.`
     : "";
 
-  return `City: ${city}
+  return `City: ${city}${userHintLine}
 
-Detected labels from the photo (highest confidence first):
-${labelLines || "- (none)"}${userHintLine}
+Detected labels from the photo (computer vision - may be inaccurate):
+${labelLines || "- (none)"}
 
-Identify the waste item and give recycling or disposal advice specific to this location.`;
+Identify the waste item based primarily on the user's input, and give recycling or disposal advice specific to this location.`;
 }
 
 function extractJsonObject(text) {
